@@ -1,0 +1,30 @@
+{
+  "name": "distrohub",
+  "version": "1.0.0",
+  "description": "A wholesale distribution management platform for tracking inventory, deliveries, and client balances. This replaces unorganized spreadsheets and guesswork with a simple dashboard.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon --env-file=.env server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JadAlTounsi/distrohub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/JadAlTounsi/distrohub/issues"
+  },
+  "homepage": "https://github.com/JadAlTounsi/distrohub#readme",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "mysql2": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
