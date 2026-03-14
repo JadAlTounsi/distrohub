@@ -26,9 +26,9 @@ export const getProduct = async (req, res, next) => {
 export const createProduct = async (req, res, next) => {
     const newProduct = {
         name: req.body.name,
-        quantity: req.body.quantity,
+        quantity: parseFloat(req.body.quantity),
         unit: req.body.unit,
-        price: req.body.price
+        price: parseFloat(req.body.price)
     }
 
     if (!newProduct.name || newProduct.quantity === undefined || !newProduct.unit || newProduct.price === undefined) {
@@ -59,7 +59,7 @@ export const updateProduct = async (req, res, next) => {
 
     await db.query(
         "UPDATE inventory SET name = ?, quantity = ?, unit = ?, price = ? WHERE product_id = ?",
-        [req.body.name, req.body.quantity, req.body.unit, req.body.price, id]
+        [req.body.name, parseFloat(req.body.quantity), req.body.unit, parseFloat(req.body.price), id]
     );
     const [updatedInventory] = await db.query("SELECT * FROM inventory");
     res.status(200).json(updatedInventory);
