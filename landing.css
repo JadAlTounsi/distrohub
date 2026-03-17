@@ -1,3 +1,4 @@
+
 body {
     font-family: "Inter", sans-serif;
     background-color: #f8f9fa;
@@ -21,9 +22,8 @@ ul {
     display: flex;
 }
 
-
-nav, ul, li {
-    padding-left: 15px;
+li {
+    padding: 0 15px 0 15px;
 }
 
 main {
@@ -44,7 +44,7 @@ main {
 }
 
 #view-dashboard {
-    background-color: #004AAD;
+    background-color: #004aad;
     font-size: 30px;
     padding: 15px;
     margin: 20px;
@@ -52,6 +52,11 @@ main {
     color: white;
     border: none;
     cursor: pointer;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
 }
 
 #features {
@@ -88,8 +93,5 @@ footer {
 
     #features div {
         width: 80%;
-    }
-    #search-posts {
-        justify-content: center;
     }
 }
