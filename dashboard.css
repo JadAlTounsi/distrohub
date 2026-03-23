@@ -95,6 +95,11 @@ span {
     margin-right: 10px;
 }
 
+.sidebar ul #overview {
+    background-color: #5b7490;
+    border-radius: 10px;
+}
+
 .sidebar ul li span {
     font-size: 24px;
 }
