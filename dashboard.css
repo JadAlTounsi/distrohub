@@ -95,7 +95,7 @@ span {
     margin-right: 10px;
 }
 
-.sidebar ul #overview {
+.sidebar ul li.active {
     background-color: #5b7490;
     border-radius: 10px;
 }
@@ -121,6 +121,10 @@ main {
     background-color: #f0f1f3;
     padding: 20px;
     flex: 1;
+}
+
+#inventory-section, #orders-section, #clients-section {
+    display: none;
 }
 
 .top-row {
@@ -173,7 +177,7 @@ main {
     gap: 20px;
 }
 
-#recent-orders, #low-stock {
+#recent-orders, #low-stock, #products {
     background-color: white;
     border-radius: 10px;
     overflow: hidden;
@@ -215,6 +219,104 @@ td {
     background-color: white;
     padding: 10px;
     border-top: 1px solid #adadaf;
+}
+
+.inventory-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+
+.search-box {
+    position: relative;
+    display: inline-block;
+    flex: 1;
+}
+
+.search-box span {
+    color: #adadaf;
+    position: absolute;
+    font-size: 20px;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+#search-input {
+    outline: none;
+    padding-left: 30px;
+    height: 40px;
+    max-width: 250px;
+    border: 2px solid #adadaf;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+.add-product {
+    position: relative;
+    display: inline-block;
+}
+
+.add-product span {
+    color: white;
+    position: absolute;
+    font-size: 20px;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+#add-product-btn {
+    background-color: #30465e;
+    color: white;
+    padding-left: 40px;
+    padding-right: 20px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    cursor: pointer;
+}
+
+#products {
+    width: 100%;
+}
+
+.status-out, .status-low, .status-reorder, .status-good {
+    padding: 5px 10px 5px 10px;
+    border-radius: 50px;
+    color: white;
+    white-space: nowrap;
+}
+
+.status-out {
+    background-color: #696969;
+}
+
+.status-low {
+    background-color: rgb(160, 0, 0);
+}
+
+.status-reorder {
+    background-color: #e09305;
+}
+
+.status-good {
+    background-color: #008000
+}
+
+.edit-icon {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.delete-icon {
+    color: #9d0000;
+    cursor: pointer;
 }
 
 footer {
@@ -334,8 +436,7 @@ footer {
         font-size: 60px;
     }
 
-    #recent-orders, #low-stock {
-        width: 100%;
+    #recent-orders, #low-stock, #products {
         overflow-x: auto;
     }
 
