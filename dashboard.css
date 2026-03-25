@@ -177,7 +177,7 @@ main {
     gap: 20px;
 }
 
-#recent-orders, #low-stock, #products {
+#recent-orders, #low-stock, #products, #orders-table {
     background-color: white;
     border-radius: 10px;
     overflow: hidden;
@@ -221,7 +221,7 @@ td {
     border-top: 1px solid #adadaf;
 }
 
-.inventory-controls {
+.inventory-controls, .order-controls, .client-controls {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -229,13 +229,13 @@ td {
 }
 
 
-.search-box {
+.search-products, .search-orders, .search-clients {
     position: relative;
     display: inline-block;
     flex: 1;
 }
 
-.search-box span {
+.search-products span, .search-orders span, .search-clients span {
     color: #adadaf;
     position: absolute;
     font-size: 20px;
@@ -245,7 +245,7 @@ td {
     pointer-events: none;
 }
 
-#search-input {
+#search-input-products, #search-input-orders, #search-input-clients {
     outline: none;
     padding-left: 30px;
     height: 40px;
@@ -255,12 +255,12 @@ td {
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
 }
 
-.add-product {
+.add-product, .add-order, .add-client {
     position: relative;
     display: inline-block;
 }
 
-.add-product span {
+.add-product span, .add-order span, .add-client span {
     color: white;
     position: absolute;
     font-size: 20px;
@@ -270,7 +270,7 @@ td {
     pointer-events: none;
 }
 
-#add-product-btn {
+#add-product-btn, #add-order-btn, #add-client-btn {
     background-color: #30465e;
     color: white;
     padding-left: 40px;
@@ -282,11 +282,11 @@ td {
     cursor: pointer;
 }
 
-#products {
+#products, #orders-table {
     width: 100%;
 }
 
-.status-out, .status-low, .status-reorder, .status-good {
+.status-out, .status-low, .status-reorder, .status-good, .status-cancelled, .status-pending, .status-delivered {
     padding: 5px 10px 5px 10px;
     border-radius: 50px;
     color: white;
@@ -297,15 +297,15 @@ td {
     background-color: #696969;
 }
 
-.status-low {
+.status-low, .status-cancelled {
     background-color: rgb(160, 0, 0);
 }
 
-.status-reorder {
+.status-reorder, .status-pending {
     background-color: #e09305;
 }
 
-.status-good {
+.status-good, .status-delivered {
     background-color: #008000
 }
 

@@ -207,9 +207,9 @@
 
                 <section id="inventory-section">
                     <div class="inventory-controls">
-                        <div class="search-box">
+                        <div class="search-products">
                             <span class="material-symbols-outlined">search</span>
-                            <input type="text" placeholder="Search..." id="search-input">
+                            <input type="text" placeholder="Search..." id="search-input-products">
                         </div>
 
                         <div class="add-product">
@@ -293,11 +293,128 @@
                 </section>
 
                 <section id="orders-section">
+                    <div class="order-controls">
+                        <div class="search-orders">
+                            <span class="material-symbols-outlined">search</span>
+                            <input type="text" placeholder="Search..." id="search-input-orders">
+                        </div>
 
+                        <div class="add-order">
+                            <span class="material-symbols-outlined">add</span>
+                            <button id="add-order-btn">Add Order</button>
+                        </div>
+                    </div>
+                    <section id="orders-table">
+                        <table>
+                            <caption>Orders</caption>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Client</th>
+                                    <th>Amount</th>
+                                    <th>Order Date</th>
+                                    <th>Arrival Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>0001</td>
+                                    <td>Shawarma Spot</td>
+                                    <td>$233.45</td>
+                                    <td>2026-03-17</td>
+                                    <td>2026-03-20</td>
+                                    <td><span class="status-pending">Pending</span></td>
+                                    <td>
+                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
+                                        <span class="material-symbols-outlined delete-icon">delete</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>0002</td>
+                                    <td>Restaurant</td>
+                                    <td>$342.63</td>
+                                    <td>2026-03-18</td>
+                                    <td>2026-03-21</td>
+                                    <td><span class="status-cancelled">Cancelled</span></td>
+                                    <td>
+                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
+                                        <span class="material-symbols-outlined delete-icon">delete</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>0003</td>
+                                    <td>Restaurant</td>
+                                    <td>$154.93</td>
+                                    <td>2026-03-25</td>
+                                    <td>2026-03-28</td>
+                                    <td><span class="status-delivered">Delivered</span></td>
+                                    <td>
+                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
+                                        <span class="material-symbols-outlined delete-icon">delete</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
                 </section>
 
                 <section id="clients-section">
+                    <div class="client-controls">
+                        <div class="search-clients">
+                            <span class="material-symbols-outlined">search</span>
+                            <input type="text" placeholder="Search..." id="search-input-clients">
+                        </div>
 
+                        <div class="add-client">
+                            <span class="material-symbols-outlined">add</span>
+                            <button id="add-client-btn">Add Client</button>
+                        </div>
+                    </div>
+
+                    <section id="orders-table">
+                        <table>
+                            <caption>Clients</caption>
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Phone</th>
+                                    <th>Balance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Client 1</td>
+                                    <td>123-456-789</td>
+                                    <td>$2464.54</td>
+                                    <td>
+                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
+                                        <span class="material-symbols-outlined delete-icon">delete</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Client 2</td>
+                                    <td>123-456-789</td>
+                                    <td>$3446.23</td>
+                                    <td>
+                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
+                                        <span class="material-symbols-outlined delete-icon">delete</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Client 3</td>
+                                    <td>123-456-789</td>
+                                    <td>$943.57</td>
+                                    <td>
+                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
+                                        <span class="material-symbols-outlined delete-icon">delete</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
                 </section>
             </main>
             <footer>
