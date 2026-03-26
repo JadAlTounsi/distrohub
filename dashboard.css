@@ -177,7 +177,7 @@ main {
     gap: 20px;
 }
 
-#recent-orders, #low-stock, #products, #orders-table {
+#recent-orders, #low-stock, #products, #orders-table, #clients-table {
     background-color: white;
     border-radius: 10px;
     overflow: hidden;
@@ -282,7 +282,7 @@ td {
     cursor: pointer;
 }
 
-#products, #orders-table {
+#products, #orders-table, #clients-table {
     width: 100%;
 }
 
