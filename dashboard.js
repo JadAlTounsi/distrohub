@@ -71,8 +71,19 @@ function loadOverview() {
                     tbody.appendChild(tr);
                 }
             }
+
+            let stringValue = value.toString() / 1000;
+
+            if (value > 1000 && value < 1000000) {
+                document.getElementById("value-amount").textContent = "$" + stringValue.toFixed(2) + "K";
+            } else if (value >= 1000000) {
+                document.getElementById("value-amount").textContent = "$" + stringValue.toFixed(2) + "M";
+            } else {
+                document.getElementById("value-amount").textContent = "$" + value;
+            }
+
+
             document.getElementById("total-items").textContent = sum;
-            document.getElementById("value-amount").textContent = "$" + value;
         });
 
     fetch("http://localhost:8000/api/orders")
