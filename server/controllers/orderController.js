@@ -3,11 +3,11 @@ import db from "../config/db.js";
 export const getOrders = async (req, res) => {
     const limit = parseInt(req.query.limit);
     if (!isNaN(limit) && limit > 0) {
-        const [orders] = await db.query("SELECT * FROM orders LIMIT ?", [limit]);
+        const [orders] = await db.query("SELECT orders.order_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC LIMIT ?", [limit]);
         return res.status(200).json(orders);
     }
-
-    const [orders] = await db.query("SELECT * FROM orders");
+    
+    const [orders] = await db.query("SELECT orders.order_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC");
     res.status(200).json(orders);
 }
 

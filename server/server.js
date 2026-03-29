@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import errorHandler from "./middleware/error.js";
 import inventory from "./routes/inventory.js";
 import clients from "./routes/clients.js";
@@ -12,6 +13,9 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+
+app.use(cors());
+
 
 app.use("/api/inventory", inventory);
 app.use("/api/clients", clients);

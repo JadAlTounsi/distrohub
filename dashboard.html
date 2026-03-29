@@ -39,11 +39,11 @@
                                 <h2>Total Inventory</h2>
                                 <div class="inv-numbers">
                                     <div class="items">
-                                        <h1>8,420</h1>
+                                        <h1 id="total-items"></h1>
                                         <p>items</p>
                                     </div>
                                     <div class="value">
-                                        <h1>$1.2M</h1>
+                                        <h1 id="value-amount"></h1>
                                         <p>Value</p>
                                     </div>
                                 </div>
@@ -56,12 +56,12 @@
                                 <h2>Pending Orders</h2>
                                 <div class="order-numbers">
                                     <div class="items">
-                                        <h1>145</h1>
+                                        <h1 id="active-orders"></h1>
                                         <p>Active</p>
                                     </div>
-                                    <div class="rush">
-                                        <h1>20</h1>
-                                        <p>Rush</p>
+                                    <div class="overdue-orders">
+                                        <h1 id="overdue"></h1>
+                                        <p>Overdue</p>
                                     </div>
                                 </div>
                             </div>
@@ -73,11 +73,11 @@
                                 <h2>Active Clients</h2>
                                 <div class="client-numbers">
                                     <div class="accounts">
-                                        <h1>300</h1>
-                                        <p>Accounts</p>
+                                        <h1 id="total-clients"></h1>
+                                        <p>Clients</p>
                                     </div>
                                     <div class="new-clients">
-                                        <h1>20</h1>
+                                        <h1 id="total-new-clients"></h1>
                                         <p>New</p>
                                     </div>
                                 </div>
@@ -87,7 +87,7 @@
 
                     <div class="bottom-row">
                         <section id="recent-orders">
-                            <table>
+                            <table id="recent-orders-table">
                                 <caption>Recent Orders</caption>
                                 <thead>
                                     <tr>
@@ -98,77 +98,7 @@
                                         <th>Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
-                                    <tr>
-                                        <td>0001</td>
-                                        <td>Shawarma Spot</td>
-                                        <td>2026-03-17</td>
-                                        <td>23 Items</td>
-                                        <td>$233.45</td>
-                                    </tr>
+                                <tbody id="recent-orders-body">
                                 </tbody>
                             </table>
                         </section>
@@ -182,23 +112,7 @@
                                         <th>Available</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Olive Oil</td>
-                                        <td>5</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Olive Oil</td>
-                                        <td>5</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Olive Oil</td>
-                                        <td>5</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Olive Oil</td>
-                                        <td>5</td>
-                                    </tr>
+                                <tbody id="low-stock-body">
                                 </tbody>
                             </table>
                         </section>
