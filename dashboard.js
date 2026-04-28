@@ -20,11 +20,16 @@ function hideAll() {
     clientsBtn.classList.remove("active");
 }
 
+let inventoryLoaded = false;
+let ordersLoaded = false;
+let clientsLoaded = false;
+
 overviewBtn.addEventListener("click", () => {
     hideAll();
     overviewSection.style.display="block";
     overviewBtn.classList.add("active");
     title.textContent = "Dashboard Overview";
+    location.hash = "overview";
 })
 
 inventoryBtn.addEventListener("click", () => {
@@ -32,6 +37,11 @@ inventoryBtn.addEventListener("click", () => {
     inventorySection.style.display="block";
     inventoryBtn.classList.add("active");
     title.textContent = "Inventory Management";
+    location.hash = "inventory";
+    if (!inventoryLoaded) {
+        loadInventory();
+        inventoryLoaded = true;
+    }
 })
 
 ordersBtn.addEventListener("click", () => {
@@ -39,6 +49,7 @@ ordersBtn.addEventListener("click", () => {
     ordersSection.style.display="block";
     ordersBtn.classList.add("active");
     title.textContent = "Order Management";
+    location.hash = "orders";
 })
 
 clientsBtn.addEventListener("click", () => {
@@ -46,7 +57,10 @@ clientsBtn.addEventListener("click", () => {
     clientsSection.style.display="block";
     clientsBtn.classList.add("active");
     title.textContent = "Client Management";
+    location.hash = "clients";
 })
+
+
 
 function loadOverview() {
     fetch('http://localhost:8000/api/inventory')
@@ -54,22 +68,32 @@ function loadOverview() {
         .then(data => {
             let sum = 0;
             let value = 0;
-            const tbody = document.getElementById("low-stock-body");
+
+            const low_stock_tbody = document.getElementById("low-stock-body");
+            const products_tbody = document.getElementById("products-body");
 
             for (const item of data) {
                 sum += item.quantity;
                 value += item.price * item.quantity;
-
+                
                 const tr = document.createElement("tr");
                 const tdProduct = document.createElement("td");
                 const tdAvailable = document.createElement("td");
+                
+                const tdUnit = document.createElement("td");
+                const tdPrice = document.createElement("td");
+                const tdProductStatus = document.createElement("td");
 
                 if (item.quantity <= 10 && item.quantity >= 0) {
                     tdProduct.textContent = item.name;
                     tdAvailable.textContent = item.quantity;
                     tr.append(tdProduct, tdAvailable);
-                    tbody.appendChild(tr);
+                    low_stock_tbody.appendChild(tr);
                 }
+
+                tdUnit.textContent = item.unit;
+                tdPrice.textContent = item.price;
+                
             }
 
             let stringValue = value.toString() / 1000;
@@ -82,8 +106,8 @@ function loadOverview() {
                 document.getElementById("value-amount").textContent = "$" + value;
             }
 
-
             document.getElementById("total-items").textContent = sum;
+
         });
 
     fetch("http://localhost:8000/api/orders")
@@ -91,7 +115,7 @@ function loadOverview() {
         .then(data => {
             let active = 0;
             let overdue = 0;
-            const tbody = document.getElementById("recent-orders-body");
+            const recent_orders_tbody = document.getElementById("recent-orders-body");
 
             for (const order of data) {
                 active += 1;
@@ -118,7 +142,7 @@ function loadOverview() {
 
                 tr.append(tdOrderId, tdClient, tdDate, tdQuantity, tdAmount);
 
-                tbody.appendChild(tr);
+                recent_orders_tbody.appendChild(tr);
             }
             document.getElementById("active-orders").textContent = active;
             document.getElementById("overdue").textContent = overdue;
@@ -143,5 +167,113 @@ function loadOverview() {
             document.getElementById("total-new-clients").textContent = newClients;
         });
 }
+
+function loadInventory() {
+    fetch('http://localhost:8000/api/inventory')
+        .then(response => response.json())
+        .then(data => {
+            const productsBody = document.getElementById("products-body");
+
+            for (const item of data) {
+                const tr = document.createElement("tr");
+
+                const tdProduct = document.createElement("td");
+                const tdQuantity = document.createElement("td");
+                const tdUnit = document.createElement("td");
+                const tdPrice = document.createElement("td");
+                const tdProductStatus = document.createElement("td");
+                const spanProductStatus = document.createElement("span");
+                const tdActions = document.createElement("td");
+                const spanActionsEdit = document.createElement("span");
+                const spanActionsDelete = document.createElement("span");
+
+                tdProduct.textContent = item.name;
+                tdQuantity.textContent = item.quantity;
+                tdUnit.textContent = item.unit;
+                tdPrice.textContent = item.price;
+                
+                if (item.quantity <= 0) {
+                    spanProductStatus.textContent = "Out of Stock";
+                    spanProductStatus.className = "status-out";
+                } else if (item.quantity <= 10) {
+                    spanProductStatus.textContent = "Low Stock";
+                    spanProductStatus.className = "status-low";
+                } else if (item.quantity <= 30) {
+                    spanProductStatus.textContent = "Reorder Soon";
+                    spanProductStatus.className = "status-reorder";
+                } else {
+                    spanProductStatus.textContent = "In Stock";
+                    spanProductStatus.className = "status-good";
+                }
+                tdProductStatus.appendChild(spanProductStatus);
+           
+                spanActionsEdit.className = "material-symbols-outlined edit-icon";
+                spanActionsDelete.className = "material-symbols-outlined delete-icon";
+
+                spanActionsEdit.textContent = "edit_square";
+                spanActionsDelete.textContent = "delete";
+
+                spanActionsEdit.addEventListener("click", () => {
+                    editProduct(item.product_id);
+                });
+
+                tdActions.append(spanActionsEdit, spanActionsDelete);
+
+                spanActionsDelete.addEventListener("click", () => {
+                    showConfirm("Delete Confirmation", "Are you sure you want to delete " + item.name + "?", () => {
+                        deleteProduct(item.product_id, tr);
+                    });
+                });
+                
+                tr.append(tdProduct, tdQuantity, tdUnit, tdPrice, tdProductStatus, tdActions);
+                productsBody.appendChild(tr);
+
+            }
+        });
+}
+
+function deleteProduct(id, row) {
+
+    fetch(`http://localhost:8000/api/inventory/${id}`, {
+        method: "DELETE"
+    })
+    .then(response => response.json())
+    .then(() => {
+        row.remove();
+    });
+}
+
+function showConfirm(header, message, onConfirm) {
+    document.getElementById("confirm-modal").style.display = "flex";
+    document.getElementById("confirm-header").textContent = header;
+    document.getElementById("confirm-message").textContent = message;
+    
+    document.getElementById("confirm-yes").onclick = () => {
+        onConfirm();
+        closeConfirm();
+    };
+    
+    document.getElementById("confirm-no").onclick = () => {
+        closeConfirm();
+    };
+}
+
+function closeConfirm() {
+    document.getElementById("confirm-modal").style.display = "none";
+}
+
 loadOverview();
 
+const hash = location.hash.replace("#", "");
+if (hash === "overview") {
+    overviewBtn.click();
+}
+if (hash === "inventory") {
+    inventoryBtn.click();
+}
+if (hash === "orders") {
+    ordersBtn.click();
+}
+if (hash === "clients") {
+    clientsBtn.click();
+}

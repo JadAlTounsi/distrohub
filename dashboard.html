@@ -145,62 +145,7 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Chips</td>
-                                    <td>0</td>
-                                    <td>packs</td>
-                                    <td>$1.99</td>
-                                    <td><span class="status-out">Out of Stock</span></td>
-                                    <td>
-                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
-                                        <span class="material-symbols-outlined delete-icon">delete</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Cumin Powder</td>
-                                    <td>5</td>
-                                    <td>packs</td>
-                                    <td>$2.99</td>
-                                    <td><span class="status-low">Low Stock</span></td>
-                                    <td>
-                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
-                                        <span class="material-symbols-outlined delete-icon">delete</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Rice</td>
-                                    <td>15</td>
-                                    <td>bags</td>
-                                    <td>$3.99</td>
-                                    <td><span class="status-reorder">Reorder Soon</span></td>
-                                    <td>
-                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
-                                        <span class="material-symbols-outlined delete-icon">delete</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Raw Honey Comb</td>
-                                    <td>55</td>
-                                    <td>boxes</td>
-                                    <td>$25.99</td>
-                                    <td><span class="status-good">In Stock</span></td>
-                                    <td>
-                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
-                                        <span class="material-symbols-outlined delete-icon">delete</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Pickles</td>
-                                    <td>7</td>
-                                    <td>jars</td>
-                                    <td>$2.59</td>
-                                    <td><span class="status-low">Low Stock</span></td>
-                                    <td>
-                                        <span class="material-symbols-outlined edit-icon">edit_square</span>
-                                        <span class="material-symbols-outlined delete-icon">delete</span>
-                                    </td>
-                                </tr>
+                            <tbody id="products-body">
                             </tbody>
                         </table>
                     </section>
@@ -331,11 +276,25 @@
                     </section>
                 </section>
             </main>
+
+
+            <div id="confirm-modal">
+                <div id="confirm-box">
+                    <h3 id="confirm-header"></h3>
+                    <p id="confirm-message"></p>
+                    <div id="confirm-buttons">
+                        <button id="confirm-yes">Delete</button>
+                        <button id="confirm-no">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            
             <footer>
                 <p>&copy; 2026 Jad Al Tounsi. All rights reserved.</p>
             </footer>
         </div>
     </div>
+
     <script src="dashboard.js"></script>
 </body>
 

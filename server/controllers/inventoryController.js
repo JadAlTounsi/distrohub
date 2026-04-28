@@ -7,7 +7,7 @@ export const getInventory = async (req, res) => {
         return res.status(200).json(products);
     }
 
-    const [products] = await db.query("SELECT * FROM inventory");
+    const [products] = await db.query("SELECT * FROM inventory WHERE is_active = TRUE");
     res.status(200).json(products);
 }
 
@@ -75,8 +75,13 @@ export const deleteProduct = async (req, res, next) => {
         return next (error);
     }
 
-    await db.query("DELETE FROM inventory WHERE product_id = ?",[id]);
-
+    const[orderItems] = await db.query("SELECT * FROM order_items WHERE product_id = ?", [id]);
+    if (orderItems.length > 0) {
+        await db.query("UPDATE inventory SET is_active = FALSE WHERE product_id = ?", [id]);
+    } else {
+        await db.query("DELETE FROM inventory WHERE product_id = ?", [id]);
+    }
+    
     const [updatedInventory] = await db.query("SELECT * FROM inventory");
     res.status(200).json(updatedInventory);
 }

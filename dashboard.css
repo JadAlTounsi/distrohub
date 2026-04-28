@@ -319,6 +319,51 @@ td {
     cursor: pointer;
 }
 
+#confirm-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+}
+
+#confirm-box {
+    background-color: white;
+    text-align: center;
+    border-radius: 10px;
+    padding: 0 50px 20px 50px;
+    margin: 15px;
+}
+
+#confirm-header {
+    text-align: left;
+}
+
+#confirm-yes, #confirm-no {
+    font-size: 15px;
+    color: white;
+    padding-left: 20px;
+    padding-right: 20px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    cursor: pointer;
+}
+
+#confirm-yes {
+    background-color: #9d0000;
+}
+
+#confirm-no {
+    background-color: #30465e;
+}
+
 footer {
     background-color: white;
     border-top: 1px solid #b1b3b4;
@@ -443,4 +488,6 @@ footer {
     table {
         min-width: 500px;
     }
+
+    
 }
