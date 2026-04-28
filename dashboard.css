@@ -319,7 +319,7 @@ td {
     cursor: pointer;
 }
 
-#confirm-modal {
+#confirm-modal, #edit-modal {
     display: none;
     position: fixed;
     top: 0;
@@ -332,7 +332,7 @@ td {
     align-items: center;
 }
 
-#confirm-box {
+#confirm-box, #edit-box {
     background-color: white;
     text-align: center;
     border-radius: 10px;
@@ -340,11 +340,33 @@ td {
     margin: 15px;
 }
 
-#confirm-header {
+#confirm-header, #edit-header {
     text-align: left;
 }
 
-#confirm-yes, #confirm-no {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#edit-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding-bottom: 30px;
+}
+
+#edit-inputs input {
+    outline: none;
+    padding-left: 10px;
+    height: 40px;
+    border: 2px solid #adadaf;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+#confirm-yes, #confirm-no, #edit-save, #edit-cancel {
     font-size: 15px;
     color: white;
     padding-left: 20px;
@@ -360,7 +382,11 @@ td {
     background-color: #9d0000;
 }
 
-#confirm-no {
+#edit-cancel {
+    color: black;
+}
+
+#confirm-no, #edit-save {
     background-color: #30465e;
 }
 

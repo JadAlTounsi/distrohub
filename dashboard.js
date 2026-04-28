@@ -213,10 +213,6 @@ function loadInventory() {
                 spanActionsEdit.textContent = "edit_square";
                 spanActionsDelete.textContent = "delete";
 
-                spanActionsEdit.addEventListener("click", () => {
-                    editProduct(item.product_id);
-                });
-
                 tdActions.append(spanActionsEdit, spanActionsDelete);
 
                 spanActionsDelete.addEventListener("click", () => {
@@ -225,6 +221,10 @@ function loadInventory() {
                     });
                 });
                 
+                spanActionsEdit.addEventListener("click", () => {
+                    showEdit(item, "inventory");
+                });
+
                 tr.append(tdProduct, tdQuantity, tdUnit, tdPrice, tdProductStatus, tdActions);
                 productsBody.appendChild(tr);
 
@@ -260,6 +260,54 @@ function showConfirm(header, message, onConfirm) {
 
 function closeConfirm() {
     document.getElementById("confirm-modal").style.display = "none";
+}
+
+function closeEdit() {
+    document.getElementById("edit-modal").style.display = "none";
+}
+
+function showEdit(data, section) {
+    if (section === "inventory") {
+        document.getElementById("edit-modal").style.display = "flex";
+        document.getElementById("edit-header").textContent = "Edit Product";
+        document.getElementById("edit-inputs").innerHTML = 
+            `<input type="text" id="edit-name" placeholder="Product Name">
+            <input type="number" id="edit-quantity" placeholder="Quantity">
+            <input type="text" id="edit-unit" placeholder="Unit">
+            <input type="number" id="edit-price" placeholder="Price">`;
+        
+        document.getElementById("edit-name").value = data.name;
+        document.getElementById("edit-quantity").value = data.quantity;
+        document.getElementById("edit-unit").value = data.unit;
+        document.getElementById("edit-price").value = data.price;
+
+        document.getElementById("edit-save").onclick = () => {
+            fetch(`http://localhost:8000/api/inventory/${data.product_id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("edit-name").value,
+                    quantity: document.getElementById("edit-quantity").value,
+                    unit: document.getElementById("edit-unit").value,
+                    price: document.getElementById("edit-price").value
+                })
+            })
+            .then(response => response.json())
+            .then(() => {
+                closeEdit();
+                document.getElementById("products-body").innerHTML = "";
+                inventoryLoaded = false;
+                loadInventory();
+                inventoryLoaded = true;
+            });
+        }
+    }
+
+    document.getElementById("edit-cancel").onclick = () => {
+        closeEdit();
+    };
 }
 
 loadOverview();
