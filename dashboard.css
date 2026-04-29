@@ -366,6 +366,16 @@ input[type="number"]::-webkit-outer-spin-button {
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
 }
 
+select {
+    outline: none;
+    padding-left: 10px;
+    height: 40px;
+    border: 2px solid #adadaf;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    cursor: pointer;
+}
+
 #confirm-yes, #confirm-no, #edit-save, #edit-cancel {
     font-size: 15px;
     color: white;

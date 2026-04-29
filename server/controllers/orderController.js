@@ -3,11 +3,11 @@ import db from "../config/db.js";
 export const getOrders = async (req, res) => {
     const limit = parseInt(req.query.limit);
     if (!isNaN(limit) && limit > 0) {
-        const [orders] = await db.query("SELECT orders.order_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC LIMIT ?", [limit]);
+        const [orders] = await db.query("SELECT orders.order_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE is_active = TRUE GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC LIMIT ?", [limit]);
         return res.status(200).json(orders);
     }
     
-    const [orders] = await db.query("SELECT orders.order_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC");
+    const [orders] = await db.query("SELECT orders.order_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE is_active = TRUE GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC");
     res.status(200).json(orders);
 }
 
@@ -65,26 +65,14 @@ export const createOrder = async (req, res, next) => {
     res.status(201).json(updatedOrders);
 }
 
+
 export const updateOrder = async (req, res, next) => {
     const id = parseInt(req.params.id);
 
-    const client_id = parseInt(req.body.client_id);
-    const orderDate = new Date(req.body.order_date);
-    const arrivalDate = new Date(req.body.arrival_date);
+    const arrivalDate = req.body.arrival_date;
+    const status = req.body.status;
 
-    const orderDateFormatted = orderDate.toISOString().split("T")[0];
-    const arrivalDateFormatted = arrivalDate.toISOString().split("T")[0];
-
-    
-    const [client] = await db.query("SELECT * FROM clients WHERE client_id = ?",[client_id]);
-
-    if (client.length === 0) {
-        const error = new Error(`Client ${client_id} could not be found`);
-        error.status = 404;
-        return next(error);
-    }
-
-    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ?",[id]);
+    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ?", [id]);
 
     if (order.length === 0) {
         const error = new Error(`Order ${id} could not be found`);
@@ -93,7 +81,7 @@ export const updateOrder = async (req, res, next) => {
     }
 
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    const isValidDate = dateRegex.test(req.body.order_date) && dateRegex.test(req.body.arrival_date);
+    const isValidDate = dateRegex.test(req.body.arrival_date);
 
     if (!isValidDate) {
         const error = new Error("Dates should be in YYYY-MM-DD format")
@@ -101,14 +89,12 @@ export const updateOrder = async (req, res, next) => {
         return next(error);
     }
 
-
-    await db.query("UPDATE orders SET client_id = ?, order_date = ?, arrival_date = ? WHERE order_id = ?",
-        [client_id, orderDateFormatted, arrivalDateFormatted, id]
+    await db.query("UPDATE orders SET arrival_date = ?, status = ? WHERE order_id = ?",
+        [arrivalDate, status, id]
     );
 
     const [orders] = await db.query("SELECT * FROM orders");
     res.status(200).json(orders);
-
 }
 
 export const deleteOrder = async (req, res, next) => {
@@ -121,7 +107,7 @@ export const deleteOrder = async (req, res, next) => {
         return next(error);
     }
 
-    await db.query("DELETE FROM orders WHERE order_id = ?", [id]);
+    await db.query("UPDATE orders SET is_active = FALSE WHERE order_id = ?", [id]);
 
     const [orders] = await db.query("SELECT * FROM orders");
     res.status(200).json(orders);

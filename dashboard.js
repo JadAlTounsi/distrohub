@@ -50,6 +50,10 @@ ordersBtn.addEventListener("click", () => {
     ordersBtn.classList.add("active");
     title.textContent = "Order Management";
     location.hash = "orders";
+    if (!ordersLoaded) {
+        loadOrders();
+        ordersLoaded = true;
+    }
 })
 
 clientsBtn.addEventListener("click", () => {
@@ -168,6 +172,71 @@ function loadOverview() {
         });
 }
 
+function loadOrders() {
+    fetch(`http://localhost:8000/api/orders`)
+        .then(response => response.json())
+        .then(data => {
+            const ordersBody = document.getElementById("orders-body");
+
+            for (const order of data) {
+                const tr = document.createElement("tr");
+
+                const tdOrderId = document.createElement("td");
+                const tdClient = document.createElement("td");
+                const tdAmount = document.createElement("td");
+                const tdOrderDate = document.createElement("td");
+                const tdArrivalDate = document.createElement("td");
+                const tdOrderStatus = document.createElement("td");
+                const spanOrderStatus = document.createElement("span");
+                const tdActions = document.createElement("td");
+                const spanActionsEdit = document.createElement("span");
+                const spanActionsDelete = document.createElement("span");
+
+                tdOrderId.textContent = order.order_id;
+                tdClient.textContent = order.client_name;
+                tdAmount.textContent = "$" + order.total_amount;
+                tdOrderDate.textContent = new Date(order.order_date).toISOString().split("T")[0];
+                tdArrivalDate.textContent = new Date(order.arrival_date).toISOString().split("T")[0];
+                spanOrderStatus.textContent = order.status;
+
+                if (order.status === "Delivered") {
+                    spanOrderStatus.className = "status-delivered";
+                }
+
+                if (order.status === "Pending") {
+                    spanOrderStatus.className = "status-pending";
+                }
+
+                if (order.status === "Cancelled") {
+                    spanOrderStatus.className = "status-cancelled";
+                }
+
+                tdOrderStatus.appendChild(spanOrderStatus);
+           
+                spanActionsEdit.className = "material-symbols-outlined edit-icon";
+                spanActionsDelete.className = "material-symbols-outlined delete-icon";
+
+                spanActionsEdit.textContent = "edit_square";
+                spanActionsDelete.textContent = "delete";
+
+                spanActionsDelete.addEventListener("click", () => {
+                    showConfirm("Delete Order #" + order.order_id, "Are you sure you want to delete this order for " + order.client_name + "?", () => {
+                        deleteRow("orders", order.order_id, tr);
+                    });
+                });
+                
+                spanActionsEdit.addEventListener("click", () => {
+                    showEdit(order, "orders");
+                });
+
+                tdActions.append(spanActionsEdit, spanActionsDelete);
+
+                tr.append(tdOrderId, tdClient, tdAmount, tdOrderDate, tdArrivalDate, tdOrderStatus, tdActions);
+                ordersBody.appendChild(tr);
+            }
+        });
+}
+
 function loadInventory() {
     fetch('http://localhost:8000/api/inventory')
         .then(response => response.json())
@@ -217,7 +286,7 @@ function loadInventory() {
 
                 spanActionsDelete.addEventListener("click", () => {
                     showConfirm("Delete Confirmation", "Are you sure you want to delete " + item.name + "?", () => {
-                        deleteProduct(item.product_id, tr);
+                        deleteRow("inventory", item.product_id, tr);
                     });
                 });
                 
@@ -232,9 +301,9 @@ function loadInventory() {
         });
 }
 
-function deleteProduct(id, row) {
+function deleteRow(endpoint, id, row) {
 
-    fetch(`http://localhost:8000/api/inventory/${id}`, {
+    fetch(`http://localhost:8000/api/${endpoint}/${id}`, {
         method: "DELETE"
     })
     .then(response => response.json())
@@ -305,9 +374,45 @@ function showEdit(data, section) {
         }
     }
 
+    if (section === "orders") {
+        document.getElementById("edit-modal").style.display = "flex";
+        document.getElementById("edit-header").textContent = "Edit Order";
+        document.getElementById("edit-inputs").innerHTML = 
+            `<input type="date" id="edit-arrival-date">
+            <select name="statuses" id="statuses">
+                <option value="Pending">Pending</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>`;
+        
+        document.getElementById("edit-arrival-date").value = data.arrival_date.split("T")[0];
+        document.getElementById("statuses").value = data.status;
+
+        document.getElementById("edit-save").onclick = () => {
+            fetch(`http://localhost:8000/api/orders/${data.order_id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    arrival_date: document.getElementById("edit-arrival-date").value,
+                    status: document.getElementById("statuses").value
+                })
+            })
+            .then(response => response.json())
+            .then(() => {
+                closeEdit();
+                document.getElementById("orders-body").innerHTML = "";
+                ordersLoaded = false;
+                loadOrders();
+                ordersLoaded = true;
+            });
+        }
+    }
+
     document.getElementById("edit-cancel").onclick = () => {
         closeEdit();
-    };
+    }
 }
 
 loadOverview();
