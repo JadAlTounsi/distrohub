@@ -3,7 +3,7 @@ import db from "../config/db.js";
 export const getInventory = async (req, res) => {
     const limit = parseInt(req.query.limit);
     if (!isNaN(limit) && limit > 0) {
-        const [products] = await db.query("SELECT * FROM inventory LIMIT ?", [limit]);
+        const [products] = await db.query("SELECT * FROM inventory WHERE is_active = TRUE LIMIT ?", [limit]);
         return res.status(200).json(products);
     }
 
