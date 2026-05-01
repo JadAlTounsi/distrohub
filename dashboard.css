@@ -319,6 +319,19 @@ td {
     cursor: pointer;
 }
 
+#error {
+    display: none;
+    position: fixed;
+    top: 10px;
+    right: 20px;
+    background-color: #9d0000;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+    z-index: 100;
+}
+
 #confirm-modal, #edit-modal {
     display: none;
     position: fixed;
