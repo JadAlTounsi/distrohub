@@ -62,6 +62,10 @@ clientsBtn.addEventListener("click", () => {
     clientsBtn.classList.add("active");
     title.textContent = "Client Management";
     location.hash = "clients";
+    if (!clientsLoaded) {
+        loadClients();
+        clientsLoaded = true;
+    }
 })
 
 
@@ -301,14 +305,64 @@ function loadInventory() {
         });
 }
 
+function loadClients() {
+    fetch(`http://localhost:8000/api/clients`)
+        .then(response => response.json())
+        .then(data => {
+            const clientsBody = document.getElementById("clients-body");
+
+            for (const client of data) {
+                const tr = document.createElement("tr");
+
+                const tdClient = document.createElement("td");
+                const tdPhone = document.createElement("td");
+                const tdBalance = document.createElement("td");
+                const tdActions = document.createElement("td");
+                const spanActionsEdit = document.createElement("span");
+                const spanActionsDelete = document.createElement("span");
+
+                tdClient.textContent = client.client_name;
+                tdPhone.textContent = client.phone;
+                tdBalance.textContent = "$" + client.balance;
+
+                spanActionsEdit.className = "material-symbols-outlined edit-icon";
+                spanActionsDelete.className = "material-symbols-outlined delete-icon";
+
+                spanActionsEdit.textContent = "edit_square";
+                spanActionsDelete.textContent = "delete";
+
+                spanActionsDelete.addEventListener("click", () => {
+                    showConfirm("Delete Client #" + client.client_id, "Are you sure you want to delete " + client.client_name + "?", () => {
+                        deleteRow("clients", client.client_id, tr);
+                    });
+                });
+                
+                spanActionsEdit.addEventListener("click", () => {
+                    showEdit(client, "clients");
+                });
+
+                tdActions.append(spanActionsEdit, spanActionsDelete);
+
+                tr.append(tdClient, tdPhone, tdBalance, tdActions);
+                clientsBody.appendChild(tr);
+            }
+        });
+}
+
 function deleteRow(endpoint, id, row) {
 
     fetch(`http://localhost:8000/api/${endpoint}/${id}`, {
         method: "DELETE"
     })
-    .then(response => response.json())
-    .then(() => {
-        row.remove();
+    .then(response => {
+        if (response.status === 409) {
+            return response.json().then(data => {
+                showError(data.msg);
+            });
+        }
+        return response.json().then(() => {
+            row.remove();
+        });
     });
 }
 
@@ -410,9 +464,62 @@ function showEdit(data, section) {
         }
     }
 
+    if (section === "clients") {
+        document.getElementById("edit-modal").style.display = "flex";
+        document.getElementById("edit-header").textContent = "Edit Client";
+        document.getElementById("edit-inputs").innerHTML = 
+            `<input type="text" id="edit-client-name">
+            <input type="tel" id="edit-phone" pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}">`;
+        document.getElementById("edit-phone").addEventListener("input", (e) => {
+            let value = e.target.value.replace(/\D/g, "");
+
+            if (value.length >= 7) {
+                value = value.slice(0, 3) + value.slice(3, 6) + "-" + value.slice(6, 10);
+            }
+            if (value.length >= 4) {
+                value = value.slice(0, 3) + "-" + value.slice(3);
+            }
+
+            e.target.value = value;
+        });
+
+        document.getElementById("edit-client-name").value = data.client_name;
+        document.getElementById("edit-phone").value = data.phone;
+
+        document.getElementById("edit-save").onclick = () => {
+            fetch(`http://localhost:8000/api/clients/${data.client_id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    client_name: document.getElementById("edit-client-name").value,
+                    phone: document.getElementById("edit-phone").value
+                })
+            })
+            .then(response => response.json())
+            .then(() => {
+                closeEdit();
+                document.getElementById("clients-body").innerHTML = "";
+                clientsLoaded = false;
+                loadClients();
+                clientsLoaded = true;
+            });
+        }
+    }
+
     document.getElementById("edit-cancel").onclick = () => {
         closeEdit();
     }
+}
+
+function showError(msg) {
+    const errorDiv = document.getElementById("error");
+    errorDiv.textContent = msg;
+    errorDiv.style.display = "block";
+    setTimeout(() => {
+        errorDiv.style.display = "none";
+    }, 3000);
 }
 
 loadOverview();
