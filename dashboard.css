@@ -329,10 +329,10 @@ td {
     padding: 15px 20px;
     border-radius: 10px;
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
-    z-index: 100;
+    z-index: 300;
 }
 
-#confirm-modal, #edit-modal {
+#confirm-modal, #edit-modal, #add-modal {
     display: none;
     position: fixed;
     top: 0;
@@ -345,7 +345,7 @@ td {
     align-items: center;
 }
 
-#confirm-box, #edit-box {
+#confirm-box, #edit-box, #add-box {
     background-color: white;
     text-align: center;
     border-radius: 10px;
@@ -353,7 +353,7 @@ td {
     margin: 15px;
 }
 
-#confirm-header, #edit-header {
+#confirm-header, #edit-header, #add-header {
     text-align: left;
 }
 
@@ -363,14 +363,14 @@ input[type="number"]::-webkit-outer-spin-button {
     margin: 0;
 }
 
-#edit-inputs {
+#edit-inputs, #add-inputs {
     display: flex;
     flex-direction: column;
     gap: 30px;
     padding-bottom: 30px;
 }
 
-#edit-inputs input {
+#edit-inputs input, #add-inputs input {
     outline: none;
     padding-left: 10px;
     height: 40px;
@@ -389,7 +389,7 @@ select {
     cursor: pointer;
 }
 
-#confirm-yes, #confirm-no, #edit-save, #edit-cancel {
+#confirm-yes, #confirm-no, #edit-save, #edit-cancel, #add-save, #add-cancel {
     font-size: 15px;
     color: white;
     padding-left: 20px;
@@ -405,11 +405,11 @@ select {
     background-color: #9d0000;
 }
 
-#edit-cancel {
+#edit-cancel, #add-cancel {
     color: black;
 }
 
-#confirm-no, #edit-save {
+#confirm-no, #edit-save, #add-save {
     background-color: #30465e;
 }
 

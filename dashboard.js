@@ -305,6 +305,12 @@ function loadInventory() {
                 productsBody.appendChild(tr);
 
             }
+
+            const addProductBtn = document.getElementById("add-product-btn");
+
+            addProductBtn.addEventListener("click", () => {
+                showAdd("product");
+            });
         });
 }
 
@@ -390,6 +396,10 @@ function closeConfirm() {
 
 function closeEdit() {
     document.getElementById("edit-modal").style.display = "none";
+}
+
+function closeAdd() {
+    document.getElementById("add-modal").style.display = "none";
 }
 
 function showEdit(data, section) {
@@ -513,6 +523,56 @@ function showEdit(data, section) {
 
     document.getElementById("edit-cancel").onclick = () => {
         closeEdit();
+    }
+}
+
+function showAdd(section) {
+    document.getElementById("add-modal").style.display = "flex";
+    if (section === "product") {
+        document.getElementById("add-header").textContent = "Add Product";
+        document.getElementById("add-inputs").innerHTML = 
+            `<input type="text" id="add-name" placeholder="Product Name">
+            <input type="number" id="add-quantity" placeholder="Quantity">
+            <input type="text" id="add-unit" placeholder="Unit">
+            <input type="number" id="add-price" placeholder="Price">`;
+
+        const newProductName = document.getElementById("add-name").value;
+        const newProductQuantity = document.getElementById("add-quantity").value;
+        const newProductUnit = document.getElementById("add-unit").value;
+        const newProductPrice = document.getElementById("add-price").value;
+
+        document.getElementById("add-save").onclick = () => {
+            fetch(`http://localhost:8000/api/inventory/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: newProductName,
+                    quantity: newProductQuantity,
+                    unit: newProductUnit,
+                    price: newProductPrice
+                })
+            })
+            .then(response => {
+                if (response.status === 400) {
+                    return response.json().then(data => {
+                        showError(data.msg);
+                    });
+                }
+                return response.json().then(() => {
+                    closeAdd();
+                    document.getElementById("products-body").innerHTML = "";
+                    inventoryLoaded = false;
+                    loadInventory();
+                    inventoryLoaded = true;
+                });
+            });
+        }
+    }
+
+    document.getElementById("add-cancel").onclick = () => {
+        closeAdd();
     }
 }
 
