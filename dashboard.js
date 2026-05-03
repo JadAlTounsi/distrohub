@@ -7,6 +7,9 @@ const inventorySection = document.getElementById("inventory-section");
 const ordersSection = document.getElementById("orders-section");
 const clientsSection = document.getElementById("clients-section");
 const title = document.querySelector("#main-nav > h2");
+const searchProducts = document.getElementById("search-input-products");
+const searchOrders = document.getElementById("search-input-orders");
+const searchClients = document.getElementById("search-input-clients");
 
 function hideAll() {
     overviewSection.style.display="none";
@@ -521,6 +524,26 @@ function showError(msg) {
         errorDiv.style.display = "none";
     }, 3000);
 }
+
+function searchFilter(searchSection, bodyId, columnIndex) {
+    searchSection.addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.getElementById(bodyId).querySelectorAll("tr");
+        rows.forEach(row => {
+            const text = row.cells[columnIndex].textContent.toLowerCase();
+
+            if (text.includes(searchTerm)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+}
+
+searchFilter(searchProducts, "products-body", 0);
+searchFilter(searchOrders, "orders-body", 1);
+searchFilter(searchClients, "clients-body", 0);
 
 loadOverview();
 
