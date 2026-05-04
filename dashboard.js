@@ -241,6 +241,12 @@ function loadOrders() {
                 tr.append(tdOrderId, tdClient, tdAmount, tdOrderDate, tdArrivalDate, tdOrderStatus, tdActions);
                 ordersBody.appendChild(tr);
             }
+
+            const addOrderBtn = document.getElementById("add-order-btn");
+
+            addOrderBtn.addEventListener("click", () => {
+                showAdd("order");
+            });
         });
 }
 
@@ -528,6 +534,7 @@ function showEdit(data, section) {
 
 function showAdd(section) {
     document.getElementById("add-modal").style.display = "flex";
+
     if (section === "product") {
         document.getElementById("add-header").textContent = "Add Product";
         document.getElementById("add-inputs").innerHTML = 
@@ -555,7 +562,7 @@ function showAdd(section) {
                 })
             })
             .then(response => {
-                if (response.status === 400) {
+                if (!response.ok) {
                     return response.json().then(data => {
                         showError(data.msg);
                     });
@@ -566,6 +573,244 @@ function showAdd(section) {
                     inventoryLoaded = false;
                     loadInventory();
                     inventoryLoaded = true;
+                });
+            });
+        }
+    }
+
+    if (section === "order") {
+        document.getElementById("add-header").textContent = "Add Order";
+        document.getElementById("add-inputs").innerHTML = 
+            `<div class="form-group">
+                <h4>Client</h4>
+                <select name="select-clients" id="select-clients">
+                    <option value="" disabled selected>Select a client</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <h4>Arrival Date</h4>
+                <input type="date" id="add-arrival-date">
+            </div>
+
+            <div class="form-group">
+                <h4>Order Items</h4>
+                <section id="items">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-body">
+
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+
+            <div class="add-item">
+                <span class="material-symbols-outlined">add</span>
+                <button id="add-item-btn">Add Item</button>
+            </div>
+
+            <div class="total">
+                <h3>Total Amount: $<span id="order-total"></span></h3>
+            </div>`;
+
+        fetch(`http://localhost:8000/api/clients`)
+            .then(response => response.json())
+            .then(data => {
+                const selectClients = document.getElementById("select-clients");
+                const defaultOption = document.createElement("option");
+                defaultOption.value = "";
+                defaultOption.textContent = "Select an item";
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                selectItem.appendChild(defaultOption);
+                for (const client of data) {
+                    const option = document.createElement("option")
+                    option.value = client.client_id;
+                    option.textContent = client.client_name;
+                    selectClients.append(option);
+                }
+            });
+        
+        const itemsBody = document.getElementById("items-body");
+
+        const tr = document.createElement("tr");
+
+        const tdItem = document.createElement("td");
+        const tdQuantity = document.createElement("td");
+        const tdUnitPrice = document.createElement("td");
+        const tdTotal = document.createElement("td");
+        const tdActions = document.createElement("td");
+
+        const selectItem = document.createElement("select");
+
+        selectItem.id = "select-item";
+
+        const inputQuantity = document.createElement("input");
+        
+        inputQuantity.type = "number";
+        inputQuantity.placeholder = "Quantity"
+        inputQuantity.disabled = true;
+        
+        const orderTotal = document.getElementById("order-total");
+
+        let orderTotalAmount = 0;
+
+        orderTotal.textContent = orderTotalAmount.toFixed(2);
+        tdItem.append(selectItem);
+
+        tdQuantity.append(inputQuantity);
+
+        fetch(`http://localhost:8000/api/inventory`)
+            .then(response => response.json())
+            .then(data => {
+
+                for (const item of data) {
+                    const option = document.createElement("option")
+                    option.value = item.product_id;
+                    option.textContent = item.name;
+                    selectItem.append(option);
+                }
+
+                let currentItem = null;
+
+                selectItem.addEventListener("change", () => {
+                    currentItem = data.find(item => item.product_id == selectItem.value);
+                    if (currentItem) {
+                        inputQuantity.max = currentItem.quantity;
+                        tdUnitPrice.textContent = "$" + currentItem.price;
+                        inputQuantity.disabled = false;
+                    }
+                });
+
+                inputQuantity.addEventListener("input", () => {
+                    if (currentItem) {
+                        if (Number(inputQuantity.value) > currentItem.quantity) {
+                            inputQuantity.value = currentItem.quantity;
+                        }
+                        const totalPrice = Number(inputQuantity.value) * currentItem.price;
+                        tdTotal.textContent = "$" + totalPrice.toFixed(2);
+                    }
+                });
+
+            });
+
+        tr.append(tdItem, tdQuantity, tdUnitPrice, tdTotal, tdActions);
+
+        itemsBody.appendChild(tr);
+        
+        let itemsAdded = [];
+        document.getElementById("add-item-btn").onclick = () => {
+            fetch(`http://localhost:8000/api/inventory`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!selectItem.value) {
+                        showError("Please select an item");
+                        return;
+                    }
+
+                    if (!inputQuantity.value || inputQuantity.value <= 0) {
+                        showError("Please insert a valid quantity");
+                        return;
+                    }
+
+                    const itemsBody = document.getElementById("items-body");
+                    
+                    const tr = document.createElement("tr");
+
+                    const tdItem = document.createElement("td");
+                    const tdQuantity = document.createElement("td");
+                    const tdUnitPrice = document.createElement("td");
+                    const tdTotal = document.createElement("td");
+                    const tdActions = document.createElement("td");
+                    const spanActionsDelete = document.createElement("span");
+
+                    for (const item of data) {
+                        if (item.product_id == selectItem.value) {
+                            let totalPrice = inputQuantity.value*item.price;
+
+                            if (!itemsAdded.some(addedItem => addedItem.product_id === item.product_id)) {
+                                tdItem.textContent = item.name;
+                                tdUnitPrice.textContent = "$" + item.price;
+                                tdTotal.textContent = "$" + totalPrice.toFixed(2);
+                                tdQuantity.textContent = inputQuantity.value;
+
+                                spanActionsDelete.className = "material-symbols-outlined delete-icon";
+                                spanActionsDelete.textContent = "delete";
+
+                                tdActions.append(spanActionsDelete);
+                                
+                                tr.append(tdItem, tdQuantity, tdUnitPrice, tdTotal, tdActions);
+                                
+                                itemsBody.appendChild(tr);
+                                itemsAdded.push({
+                                    product_id: item.product_id,
+                                    order_quantity: parseInt(inputQuantity.value),
+                                    unit_price: item.price
+                                });
+
+                                orderTotalAmount += totalPrice;
+
+                            } else {
+                                showError("Item already added");
+                            }
+                            orderTotal.textContent = orderTotalAmount.toFixed(2);
+
+                            spanActionsDelete.addEventListener("click", () => {
+                                tr.remove();
+                                const index = itemsAdded.findIndex(addedItem => addedItem.product_id === item.product_id);
+                                if (index > -1) {
+                                    const itemRemoved = itemsAdded[index];
+                                    const amountRemoved = itemRemoved.unit_price * itemRemoved.order_quantity;
+                                    itemsAdded.splice(index, 1);
+                                    orderTotalAmount = Number((orderTotalAmount - amountRemoved).toFixed(2));
+                                    orderTotal.textContent = orderTotalAmount.toFixed(2);
+                                }
+                            });
+                        }
+                    }
+
+                    inputQuantity.value = "";
+                    selectItem.value = "";
+                });
+                tdUnitPrice.textContent = "";
+                tdTotal.textContent = "";
+
+            inputQuantity.disabled = true;    
+        }
+        
+        document.getElementById("add-save").onclick = () => {
+
+            fetch(`http://localhost:8000/api/orders`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    client_id: document.getElementById("select-clients").value,
+                    arrival_date: document.getElementById("add-arrival-date").value,
+                    items: itemsAdded
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        showError(data.msg);
+                    });
+                }
+                return response.json().then(() => {
+                    closeAdd();
+                    document.getElementById("orders-body").innerHTML = "";
+                    ordersLoaded = false;
+                    loadOrders();
+                    ordersLoaded = true;
                 });
             });
         }

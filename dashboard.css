@@ -177,7 +177,7 @@ main {
     gap: 20px;
 }
 
-#recent-orders, #low-stock, #products, #orders-table, #clients-table {
+#recent-orders, #low-stock, #products, #orders-table, #clients-table, #items {
     background-color: white;
     border-radius: 10px;
     overflow: hidden;
@@ -255,22 +255,24 @@ td {
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
 }
 
-.add-product, .add-order, .add-client {
+.add-product, .add-order, .add-client, .add-item {
     position: relative;
     display: inline-block;
 }
 
-.add-product span, .add-order span, .add-client span {
+.add-product span, .add-order span, .add-client span, .add-item span {
     color: white;
     position: absolute;
     font-size: 20px;
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
+    z-index: 1;
     pointer-events: none;
 }
 
-#add-product-btn, #add-order-btn, #add-client-btn {
+#add-product-btn, #add-order-btn, #add-client-btn, #add-item-btn {
+    position: relative;
     background-color: #30465e;
     color: white;
     padding-left: 40px;
@@ -347,10 +349,19 @@ td {
 
 #confirm-box, #edit-box, #add-box {
     background-color: white;
-    text-align: center;
     border-radius: 10px;
     padding: 0 50px 20px 50px;
     margin: 15px;
+    max-width: 45%;
+    max-height: 100%;
+}
+
+#confirm-box, #edit-box {
+    text-align: center;
+}
+
+#add-buttons {
+    text-align: right;
 }
 
 #confirm-header, #edit-header, #add-header {
@@ -367,6 +378,9 @@ input[type="number"]::-webkit-outer-spin-button {
     display: flex;
     flex-direction: column;
     gap: 30px;
+}
+
+#edit-inputs {
     padding-bottom: 30px;
 }
 
@@ -377,6 +391,16 @@ input[type="number"]::-webkit-outer-spin-button {
     border: 2px solid #adadaf;
     border-radius: 10px;
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#add-inputs h4 {
+    margin: 0;
 }
 
 select {
@@ -413,6 +437,13 @@ select {
     background-color: #30465e;
 }
 
+#add-item-btn {
+    margin-right: 80%;
+}
+
+.total {
+    text-align: right;
+}
 footer {
     background-color: white;
     border-top: 1px solid #b1b3b4;
