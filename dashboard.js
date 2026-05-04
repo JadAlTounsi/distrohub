@@ -673,10 +673,12 @@ function showAdd(section) {
             .then(data => {
 
                 for (const item of data) {
-                    const option = document.createElement("option")
-                    option.value = item.product_id;
-                    option.textContent = item.name;
-                    selectItem.append(option);
+                    if (item.quantity > 0) {
+                        const option = document.createElement("option")
+                        option.value = item.product_id;
+                        option.textContent = item.name;
+                        selectItem.append(option);
+                    }
                 }
 
                 let currentItem = null;
