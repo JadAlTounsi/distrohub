@@ -180,6 +180,7 @@ function loadOverview() {
 }
 
 function loadOrders() {
+    document.getElementById("orders-body").innerHTML = "";
     fetch(`http://localhost:8000/api/orders`)
         .then(response => response.json())
         .then(data => {
@@ -251,6 +252,7 @@ function loadOrders() {
 }
 
 function loadInventory() {
+    document.getElementById("products-body").innerHTML = "";
     fetch('http://localhost:8000/api/inventory')
         .then(response => response.json())
         .then(data => {
@@ -813,6 +815,7 @@ function showAdd(section) {
                     ordersLoaded = false;
                     loadOrders();
                     ordersLoaded = true;
+                    inventoryLoaded = false;
                 });
             });
         }
