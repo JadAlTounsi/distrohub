@@ -441,6 +441,18 @@ select {
     margin-right: 80%;
 }
 
+.add-buttons-product {
+    display: flex;
+    justify-content: center;
+    padding-top: 30px;
+}
+
+.add-buttons-order {
+    display: flex;
+    justify-content: right;
+    padding-top: 0;
+}
+
 .total {
     text-align: right;
 }

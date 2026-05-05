@@ -539,19 +539,20 @@ function showAdd(section) {
 
     if (section === "product") {
         document.getElementById("add-header").textContent = "Add Product";
+        document.getElementById("add-buttons").className = "add-buttons-product";
         document.getElementById("add-inputs").innerHTML = 
             `<input type="text" id="add-name" placeholder="Product Name">
             <input type="number" id="add-quantity" placeholder="Quantity">
             <input type="text" id="add-unit" placeholder="Unit">
             <input type="number" id="add-price" placeholder="Price">`;
 
-        const newProductName = document.getElementById("add-name").value;
-        const newProductQuantity = document.getElementById("add-quantity").value;
-        const newProductUnit = document.getElementById("add-unit").value;
-        const newProductPrice = document.getElementById("add-price").value;
-
         document.getElementById("add-save").onclick = () => {
-            fetch(`http://localhost:8000/api/inventory/`, {
+            const newProductName = document.getElementById("add-name").value;
+            const newProductQuantity = document.getElementById("add-quantity").value;
+            const newProductUnit = document.getElementById("add-unit").value;
+            const newProductPrice = document.getElementById("add-price").value;
+
+            fetch(`http://localhost:8000/api/inventory`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -582,6 +583,7 @@ function showAdd(section) {
 
     if (section === "order") {
         document.getElementById("add-header").textContent = "Add Order";
+        document.getElementById("add-buttons").className = "add-buttons-order";
         document.getElementById("add-inputs").innerHTML = 
             `<div class="form-group">
                 <h4>Client</h4>
