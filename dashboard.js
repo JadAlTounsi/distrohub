@@ -610,7 +610,13 @@ function showAdd(section) {
                             </tr>
                         </thead>
                         <tbody id="items-body">
-
+                            <tr id="input-row">
+                                <td><select id="select-item"><option value="" disabled selected>Select an item</option></select></td>
+                                <td><input type="number" id="input-quantity" placeholder="Quantity" disabled></td>
+                                <td id="preview-unit-price"></td>
+                                <td id="preview-total"></td>
+                                <td></td>
+                            </tr>
                         </tbody>
                     </table>
                 </section>
@@ -624,24 +630,6 @@ function showAdd(section) {
             <div class="total">
                 <h3>Total Amount: $<span id="order-total"></span></h3>
             </div>`;
-
-        fetch(`http://localhost:8000/api/clients`)
-            .then(response => response.json())
-            .then(data => {
-                const selectClients = document.getElementById("select-clients");
-                const defaultOption = document.createElement("option");
-                defaultOption.value = "";
-                defaultOption.textContent = "Select an item";
-                defaultOption.disabled = true;
-                defaultOption.selected = true;
-                selectItem.appendChild(defaultOption);
-                for (const client of data) {
-                    const option = document.createElement("option")
-                    option.value = client.client_id;
-                    option.textContent = client.client_name;
-                    selectClients.append(option);
-                }
-            });
         
         const itemsBody = document.getElementById("items-body");
 
@@ -653,24 +641,28 @@ function showAdd(section) {
         const tdTotal = document.createElement("td");
         const tdActions = document.createElement("td");
 
-        const selectItem = document.createElement("select");
+        const selectClients = document.getElementById("select-clients");
+        const selectItem = document.getElementById("select-item");
+        const previewUnitPrice = document.getElementById("preview-unit-price");
+        const previewTotal = document.getElementById("preview-total");
+        const inputQuantity = document.getElementById("input-quantity");
 
-        selectItem.id = "select-item";
-
-        const inputQuantity = document.createElement("input");
-        
-        inputQuantity.type = "number";
-        inputQuantity.placeholder = "Quantity"
-        inputQuantity.disabled = true;
-        
         const orderTotal = document.getElementById("order-total");
 
         let orderTotalAmount = 0;
 
         orderTotal.textContent = orderTotalAmount.toFixed(2);
-        tdItem.append(selectItem);
 
-        tdQuantity.append(inputQuantity);
+        fetch(`http://localhost:8000/api/clients`)
+            .then(response => response.json())
+            .then(data => {
+                for (const client of data) {
+                    const option = document.createElement("option")
+                    option.value = client.client_id;
+                    option.textContent = client.client_name;
+                    selectClients.append(option);
+                }
+            });
 
         fetch(`http://localhost:8000/api/inventory`)
             .then(response => response.json())
@@ -686,34 +678,44 @@ function showAdd(section) {
                 }
 
                 let currentItem = null;
+                let totalPrice = 0;
 
                 selectItem.addEventListener("change", () => {
                     currentItem = data.find(item => item.product_id == selectItem.value);
                     if (currentItem) {
                         inputQuantity.max = currentItem.quantity;
-                        tdUnitPrice.textContent = "$" + currentItem.price;
                         inputQuantity.disabled = false;
+                        totalPrice = Number(inputQuantity.value) * currentItem.price;
+                        previewUnitPrice.textContent = "$" + currentItem.price;
+                        previewTotal.textContent = "$" + totalPrice.toFixed(2);
                     }
                 });
 
                 inputQuantity.addEventListener("input", () => {
+                    inputQuantity.value = inputQuantity.value.replace(/^0+(?=\d)/, '');
                     if (currentItem) {
                         if (Number(inputQuantity.value) > currentItem.quantity) {
                             inputQuantity.value = currentItem.quantity;
                         }
-                        const totalPrice = Number(inputQuantity.value) * currentItem.price;
-                        tdTotal.textContent = "$" + totalPrice.toFixed(2);
+                        if (Number(inputQuantity.value) < 0) {
+                            inputQuantity.value = 0;
+                        }
+                        totalPrice = Number(inputQuantity.value) * currentItem.price;
+                        previewTotal.textContent = "$" + totalPrice.toFixed(2);
+                    }
+                });
+
+                inputQuantity.addEventListener("keydown", (e) => {
+                    if (e.key === "-") {
+                        e.preventDefault();
                     }
                 });
 
             });
 
-        tr.append(tdItem, tdQuantity, tdUnitPrice, tdTotal, tdActions);
-
-        itemsBody.appendChild(tr);
-        
         let itemsAdded = [];
         document.getElementById("add-item-btn").onclick = () => {
+            let skipReset = false;
             fetch(`http://localhost:8000/api/inventory`)
                 .then(response => response.json())
                 .then(data => {
@@ -722,8 +724,9 @@ function showAdd(section) {
                         return;
                     }
 
-                    if (!inputQuantity.value || inputQuantity.value <= 0) {
+                    if (!inputQuantity.value) {
                         showError("Please insert a valid quantity");
+                        skipReset = true;
                         return;
                     }
 
@@ -756,6 +759,9 @@ function showAdd(section) {
                                 tr.append(tdItem, tdQuantity, tdUnitPrice, tdTotal, tdActions);
                                 
                                 itemsBody.appendChild(tr);
+                                
+                                inputQuantity.disabled = true;
+                                
                                 itemsAdded.push({
                                     product_id: item.product_id,
                                     order_quantity: parseInt(inputQuantity.value),
@@ -784,12 +790,13 @@ function showAdd(section) {
                     }
 
                     inputQuantity.value = "";
-                    selectItem.value = "";
+                    selectItem.value = ""; 
+                    if (!skipReset) {
+                        previewUnitPrice.textContent = "";
+                        previewTotal.textContent = "";
+                        skipReset = false;
+                    }
                 });
-                tdUnitPrice.textContent = "";
-                tdTotal.textContent = "";
-
-            inputQuantity.disabled = true;    
         }
         
         document.getElementById("add-save").onclick = () => {
