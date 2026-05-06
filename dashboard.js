@@ -426,10 +426,24 @@ function showEdit(data, section) {
             <input type="text" id="edit-unit" placeholder="Unit">
             <input type="number" id="edit-price" placeholder="Price">`;
         
-        document.getElementById("edit-name").value = data.name;
-        document.getElementById("edit-quantity").value = data.quantity;
-        document.getElementById("edit-unit").value = data.unit;
-        document.getElementById("edit-price").value = data.price;
+        const inputProductName = document.getElementById("edit-name");
+        const inputProductQuantity = document.getElementById("edit-quantity");
+        const inputProductUnit = document.getElementById("edit-unit");
+        const inputProductPrice = document.getElementById("edit-price");
+
+        inputProductName.value = data.name;
+        inputProductQuantity.value = data.quantity;
+        inputProductUnit.value = data.unit;
+        inputProductPrice.value = data.price;
+
+        
+        noNegativeInput(inputProductQuantity);
+        noDecimals(inputProductQuantity);
+        removeLeadingZero(inputProductQuantity);
+
+        noNegativeInput(inputProductPrice);
+        removeLeadingZero(inputProductPrice);
+        maxTwoDecimalPlaces(inputProductPrice);
 
         document.getElementById("edit-save").onclick = () => {
             fetch(`http://localhost:8000/api/inventory/${data.product_id}`, {
@@ -438,10 +452,10 @@ function showEdit(data, section) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    name: document.getElementById("edit-name").value,
-                    quantity: document.getElementById("edit-quantity").value,
-                    unit: document.getElementById("edit-unit").value,
-                    price: document.getElementById("edit-price").value
+                    name: inputProductName.value,
+                    quantity: inputProductQuantity.value,
+                    unit: inputProductUnit.value,
+                    price: inputProductPrice.value
                 })
             })
             .then(response => response.json())
@@ -551,6 +565,15 @@ function showAdd(section) {
             <input type="number" id="add-quantity" placeholder="Quantity">
             <input type="text" id="add-unit" placeholder="Unit">
             <input type="number" id="add-price" placeholder="Price">`;
+
+        const addProductQuantity = document.getElementById("add-quantity");
+        const addProductPrice = document.getElementById("add-price");
+
+        noDecimals(addProductQuantity);
+        removeLeadingZero(addProductQuantity);
+
+        removeLeadingZero(addProductPrice);
+        maxTwoDecimalPlaces(addProductPrice);
 
         document.getElementById("add-save").onclick = () => {
             const newProductName = document.getElementById("add-name").value;
@@ -698,7 +721,7 @@ function showAdd(section) {
                 });
 
                 inputQuantity.addEventListener("input", () => {
-                    inputQuantity.value = inputQuantity.value.replace(/^0+(?=\d)/, '');
+                    removeLeadingZero(inputQuantity);
                     if (currentItem) {
                         if (Number(inputQuantity.value) > currentItem.quantity) {
                             inputQuantity.value = currentItem.quantity;
@@ -711,11 +734,8 @@ function showAdd(section) {
                     }
                 });
 
-                inputQuantity.addEventListener("keydown", (e) => {
-                    if (e.key === "-") {
-                        e.preventDefault();
-                    }
-                });
+                noNegativeInput(inputQuantity);
+                noDecimals(inputQuantity);
 
             });
 
@@ -920,6 +940,42 @@ function searchFilter(searchSection, bodyId, columnIndex) {
                 row.style.display = "none";
             }
         });
+    });
+}
+
+function maxTwoDecimalPlaces(input) {
+    input.addEventListener("keydown", (e) => {
+        let value = input.value;
+        if (value.includes(".")) {
+            const decimals = value.split(".")[1];
+            if (decimals && decimals.length >= 2 && e.key !== "Backspace" && e.key !== "Delete") {
+                e.preventDefault();
+            }
+        }
+    });
+}
+
+function removeLeadingZero(input) {
+    input.addEventListener("input", () => {
+        if (input.value !== input.value.replace(/^0+(?=\d)/, '')) {
+            input.value = input.value.replace(/^0+(?=\d)/, '');
+        }
+    });
+}
+
+function noDecimals(input) {
+    input.addEventListener("keydown", (e) => {
+        if (e.key === ".") {
+            e.preventDefault();
+        }
+    });
+}
+
+function noNegativeInput(input) {
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "-") {
+            e.preventDefault();
+        }
     });
 }
 
