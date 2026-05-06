@@ -421,10 +421,22 @@ function showEdit(data, section) {
         document.getElementById("edit-modal").style.display = "flex";
         document.getElementById("edit-header").textContent = "Edit Product";
         document.getElementById("edit-inputs").innerHTML = 
-            `<input type="text" id="edit-name" placeholder="Product Name">
-            <input type="number" id="edit-quantity" placeholder="Quantity">
-            <input type="text" id="edit-unit" placeholder="Unit">
-            <input type="number" id="edit-price" placeholder="Price">`;
+            `<div class="form-group">
+                <h4>Product Name</h4>
+                <input type="text" id="edit-name" placeholder="Product Name">
+            </div>
+            <div class="form-group">
+                <h4>Quantity</h4>
+                <input type="number" id="edit-quantity" placeholder="Quantity">
+            </div>
+            <div class="form-group">
+                <h4>Unit</h4>
+                <input type="text" id="edit-unit" placeholder="Unit">
+            </div>
+            <div class="form-group">
+                <h4>Price</h4>
+                <input type="number" id="edit-price" placeholder="Price">
+            </div>`;
         
         const inputProductName = document.getElementById("edit-name");
         const inputProductQuantity = document.getElementById("edit-quantity");
@@ -509,8 +521,14 @@ function showEdit(data, section) {
         document.getElementById("edit-modal").style.display = "flex";
         document.getElementById("edit-header").textContent = "Edit Client";
         document.getElementById("edit-inputs").innerHTML = 
-            `<input type="text" id="edit-client-name">
-            <input type="tel" id="edit-phone" pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}">`;
+             `<div class="form-group">
+                <h4>Client</h4>
+                <input type="text" id="edit-client-name" placeholder="Client Name">
+            </div>
+            <div class="form-group">
+                <h4>Phone</h4>
+                <input type="tel" id="edit-phone" pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" placeholder="Phone">
+            </div>`;
         document.getElementById("edit-phone").addEventListener("input", (e) => {
             let value = e.target.value.replace(/\D/g, "");
 
@@ -561,10 +579,22 @@ function showAdd(section) {
         document.getElementById("add-header").textContent = "Add Product";
         document.getElementById("add-buttons").className = "add-buttons-product";
         document.getElementById("add-inputs").innerHTML = 
-            `<input type="text" id="add-name" placeholder="Product Name">
-            <input type="number" id="add-quantity" placeholder="Quantity">
-            <input type="text" id="add-unit" placeholder="Unit">
-            <input type="number" id="add-price" placeholder="Price">`;
+            `<div class="form-group">
+                <h4>Product Name</h4>
+                <input type="text" id="add-name" placeholder="Product Name">
+            </div>
+            <div class="form-group">
+                <h4>Quantity</h4>
+                <input type="number" id="add-quantity" placeholder="Quantity">
+            </div>
+            <div class="form-group">
+                <h4>Unit</h4>
+                <input type="text" id="add-unit" placeholder="Unit">
+            </div>
+            <div class="form-group">
+                <h4>Price</h4>
+                <input type="number" id="add-price" placeholder="Price">
+            </div>`;
 
         const addProductQuantity = document.getElementById("add-quantity");
         const addProductPrice = document.getElementById("add-price");
