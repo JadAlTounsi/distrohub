@@ -441,7 +441,7 @@ select {
     margin-right: 80%;
 }
 
-.add-buttons-product {
+.add-buttons-product, .add-buttons-client {
     display: flex;
     justify-content: center;
     padding-top: 30px;

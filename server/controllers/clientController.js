@@ -26,20 +26,20 @@ export const getClient = async(req, res, next) => {
 
 export const createClient = async(req, res, next) => {
     const newClient = {
-        client_name: req.body.name,
+        client_name: req.body.client_name,
         phone: req.body.phone,
-        balance: parseFloat(req.body.balance)
+        join_date: new Date()
     };
 
-    if (!newClient.client_name || newClient.phone === undefined || newClient.balance === undefined) {
-        const error = new Error("Name, phone, or balance is blank");
+    if (!newClient.client_name || newClient.phone === undefined) {
+        const error = new Error("Client name and phone are required");
         error.status = 400;
         return next(error);
     }
 
     const [result] = await db.query(
-        "INSERT INTO clients (client_name, phone, balance) VALUES (?, ?, ?)",
-        [newClient.client_name, newClient.phone, newClient.balance]
+        "INSERT INTO clients (client_name, phone, join_date) VALUES (?, ?, ?)",
+        [newClient.client_name, newClient.phone, newClient.join_date]
     );
     newClient.client_id = result.insertId;
 

@@ -363,6 +363,12 @@ function loadClients() {
                 tr.append(tdClient, tdPhone, tdBalance, tdActions);
                 clientsBody.appendChild(tr);
             }
+
+            const addClientBtn = document.getElementById("add-client-btn");
+
+            addClientBtn.addEventListener("click", () => {
+                showAdd("client");
+            });
         });
 }
 
@@ -825,6 +831,63 @@ function showAdd(section) {
                     loadOrders();
                     ordersLoaded = true;
                     inventoryLoaded = false;
+                });
+            });
+        }
+    }
+
+    if (section === "client") {
+        document.getElementById("add-header").textContent = "Add Client";
+        document.getElementById("add-buttons").className = "add-buttons-client";
+        document.getElementById("add-inputs").innerHTML = 
+            `<div class="form-group">
+                <h4>Client</h4>
+                <input type="text" id="add-client-name" placeholder="Client Name">
+            </div>
+            <div class="form-group">
+                <h4>Phone</h4>
+                <input type="tel" id="add-phone" pattern="[0-9]{3}-[0-9]{2}-[0-9]{3}" placeholder="Phone">
+            </div>`;
+        
+        document.getElementById("add-phone").addEventListener("input", (e) => {
+            let value = e.target.value.replace(/\D/g, "");
+
+            if (value.length >= 7) {
+                value = value.slice(0, 3) + value.slice(3, 6) + "-" + value.slice(6, 10);
+            }
+            if (value.length >= 4) {
+                value = value.slice(0, 3) + "-" + value.slice(3);
+            }
+
+            e.target.value = value;
+        });
+
+        document.getElementById("add-save").onclick = () => {
+            const newClientName = document.getElementById("add-client-name").value;
+            const newClientPhone = document.getElementById("add-phone").value;
+
+            fetch(`http://localhost:8000/api/clients`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    client_name: newClientName,
+                    phone: newClientPhone
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        showError(data.msg);
+                    });
+                }
+                return response.json().then(() => {
+                    closeAdd();
+                    document.getElementById("clients-body").innerHTML = "";
+                    clientsLoaded = false;
+                    loadClients();
+                    clientsLoaded = true;
                 });
             });
         }
