@@ -81,7 +81,6 @@ function loadOverview() {
             let value = 0;
 
             const low_stock_tbody = document.getElementById("low-stock-body");
-            const products_tbody = document.getElementById("products-body");
 
             for (const item of data) {
                 sum += item.quantity;
@@ -91,20 +90,12 @@ function loadOverview() {
                 const tdProduct = document.createElement("td");
                 const tdAvailable = document.createElement("td");
                 
-                const tdUnit = document.createElement("td");
-                const tdPrice = document.createElement("td");
-                const tdProductStatus = document.createElement("td");
-
                 if (item.quantity <= 10 && item.quantity >= 0) {
                     tdProduct.textContent = item.name;
-                    tdAvailable.textContent = item.quantity;
+                    tdAvailable.textContent = Number(item.quantity).toLocaleString();
                     tr.append(tdProduct, tdAvailable);
                     low_stock_tbody.appendChild(tr);
                 }
-
-                tdUnit.textContent = item.unit;
-                tdPrice.textContent = item.price;
-                
             }
 
             let stringValue = value.toString() / 1000;
@@ -117,7 +108,7 @@ function loadOverview() {
                 document.getElementById("value-amount").textContent = "$" + value;
             }
 
-            document.getElementById("total-items").textContent = sum;
+            document.getElementById("total-items").textContent = sum.toLocaleString();
 
         });
 
@@ -148,15 +139,15 @@ function loadOverview() {
                 tdOrderId.textContent = order.order_id;
                 tdClient.textContent = order.client_name;
                 tdDate.textContent = new Date(order.order_date).toISOString().split("T")[0];
-                tdQuantity.textContent = order.total_quantity + " items";
-                tdAmount.textContent = "$" + order.total_amount;
+                tdQuantity.textContent = Number(order.total_quantity).toLocaleString() + " items";
+                tdAmount.textContent = "$" + Number(order.total_amount).toLocaleString();
 
                 tr.append(tdOrderId, tdClient, tdDate, tdQuantity, tdAmount);
 
                 recent_orders_tbody.appendChild(tr);
             }
-            document.getElementById("active-orders").textContent = active;
-            document.getElementById("overdue").textContent = overdue;
+            document.getElementById("active-orders").textContent = active.toLocaleString();
+            document.getElementById("overdue").textContent = overdue.toLocaleString();
         });
 
     fetch("http://localhost:8000/api/clients")
@@ -174,8 +165,8 @@ function loadOverview() {
                     newClients += 1;
                 }
             }
-            document.getElementById("total-clients").textContent = clients;
-            document.getElementById("total-new-clients").textContent = newClients;
+            document.getElementById("total-clients").textContent = clients.toLocaleString();
+            document.getElementById("total-new-clients").textContent = newClients.toLocaleString();
         });
 }
 
@@ -202,7 +193,7 @@ function loadOrders() {
 
                 tdOrderId.textContent = order.order_id;
                 tdClient.textContent = order.client_name;
-                tdAmount.textContent = "$" + order.total_amount;
+                tdAmount.textContent = "$" + Number(order.total_amount).toLocaleString();
                 tdOrderDate.textContent = new Date(order.order_date).toISOString().split("T")[0];
                 tdArrivalDate.textContent = new Date(order.arrival_date).toISOString().split("T")[0];
                 spanOrderStatus.textContent = order.status;
@@ -272,9 +263,9 @@ function loadInventory() {
                 const spanActionsDelete = document.createElement("span");
 
                 tdProduct.textContent = item.name;
-                tdQuantity.textContent = item.quantity;
+                tdQuantity.textContent = item.quantity.toLocaleString();
                 tdUnit.textContent = item.unit;
-                tdPrice.textContent = "$" + item.price;
+                tdPrice.textContent = "$" + Number(item.price).toLocaleString();
                 
                 if (item.quantity <= 0) {
                     spanProductStatus.textContent = "Out of Stock";
@@ -368,7 +359,7 @@ function loadClients() {
 
                         tdClient.textContent = client.client_name;
                         tdPhone.textContent = client.phone;
-                        tdBalance.textContent = "$" + balance.toFixed(2);
+                        tdBalance.textContent = "$" + Number(balance.toFixed(2)).toLocaleString();
                         
                         tdActions.append(spanActionsEdit, spanActionsDelete);
 
@@ -723,7 +714,7 @@ function showAdd(section) {
 
         let orderTotalAmount = 0;
 
-        orderTotal.textContent = orderTotalAmount.toFixed(2);
+        orderTotal.textContent = Number(orderTotalAmount.toFixed(2)).toLocaleString();
 
         fetch(`http://localhost:8000/api/clients`)
             .then(response => response.json())
@@ -758,8 +749,8 @@ function showAdd(section) {
                         inputQuantity.max = currentItem.quantity;
                         inputQuantity.disabled = false;
                         totalPrice = Number(inputQuantity.value) * currentItem.price;
-                        previewUnitPrice.textContent = "$" + currentItem.price;
-                        previewTotal.textContent = "$" + totalPrice.toFixed(2);
+                        previewUnitPrice.textContent = "$" + Number(currentItem.price).toLocaleString();
+                        previewTotal.textContent = "$" + Number(totalPrice.toFixed(2)).toLocaleString();
                     }
                 });
 
@@ -773,7 +764,7 @@ function showAdd(section) {
                             inputQuantity.value = 0;
                         }
                         totalPrice = Number(inputQuantity.value) * currentItem.price;
-                        previewTotal.textContent = "$" + totalPrice.toFixed(2);
+                        previewTotal.textContent = "$" + Number(totalPrice.toFixed(2)).toLocaleString();
                     }
                 });
 
@@ -817,8 +808,8 @@ function showAdd(section) {
                             if (!itemsAdded.some(addedItem => addedItem.product_id === item.product_id)) {
                                 tdItem.textContent = item.name;
                                 tdUnitPrice.textContent = "$" + item.price;
-                                tdTotal.textContent = "$" + totalPrice.toFixed(2);
-                                tdQuantity.textContent = inputQuantity.value;
+                                tdTotal.textContent = "$" + Number(totalPrice.toFixed(2)).toLocaleString();
+                                tdQuantity.textContent = Number(inputQuantity.value).toLocaleString();
 
                                 spanActionsDelete.className = "material-symbols-outlined delete-icon";
                                 spanActionsDelete.textContent = "delete";
@@ -842,7 +833,7 @@ function showAdd(section) {
                             } else {
                                 showError("Item already added");
                             }
-                            orderTotal.textContent = orderTotalAmount.toFixed(2);
+                            orderTotal.textContent = Number(orderTotalAmount.toFixed(2)).toLocaleString();
 
                             spanActionsDelete.addEventListener("click", () => {
                                 tr.remove();
@@ -852,7 +843,7 @@ function showAdd(section) {
                                     const amountRemoved = itemRemoved.unit_price * itemRemoved.order_quantity;
                                     itemsAdded.splice(index, 1);
                                     orderTotalAmount = Number((orderTotalAmount - amountRemoved).toFixed(2));
-                                    orderTotal.textContent = orderTotalAmount.toFixed(2);
+                                    orderTotal.textContent = Number(orderTotalAmount.toFixed(2)).toLocaleString();
                                 }
                             });
                         }
