@@ -173,7 +173,6 @@ function loadOverview() {
 }
 
 function loadOrders() {
-    document.getElementById("orders-body").innerHTML = "";
     fetch(`http://localhost:8000/api/orders`)
         .then(response => response.json())
         .then(data => {
@@ -200,17 +199,7 @@ function loadOrders() {
                 tdArrivalDate.textContent = new Date(order.arrival_date).toISOString().split("T")[0];
                 spanOrderStatus.textContent = order.status;
 
-                if (order.status === "Delivered") {
-                    spanOrderStatus.className = "status-delivered";
-                }
-
-                if (order.status === "Pending") {
-                    spanOrderStatus.className = "status-pending";
-                }
-
-                if (order.status === "Cancelled") {
-                    spanOrderStatus.className = "status-cancelled";
-                }
+                setOrderStatus(spanOrderStatus, order.status);
 
                 tdOrderStatus.appendChild(spanOrderStatus);
            
@@ -227,7 +216,7 @@ function loadOrders() {
                 });
                 
                 spanActionsEdit.addEventListener("click", () => {
-                    showEdit(order, "orders");
+                    showEdit(order, "orders", tr);
                 });
 
                 tdActions.append(spanActionsEdit, spanActionsDelete);
@@ -245,7 +234,6 @@ function loadOrders() {
 }
 
 function loadInventory() {
-    document.getElementById("products-body").innerHTML = "";
     fetch('http://localhost:8000/api/inventory')
         .then(response => response.json())
         .then(data => {
@@ -299,7 +287,7 @@ function loadInventory() {
                 });
                 
                 spanActionsEdit.addEventListener("click", () => {
-                    showEdit(item, "inventory");
+                    showEdit(item, "inventory", tr);
                 });
 
                 tr.append(tdProduct, tdQuantity, tdUnit, tdPrice, tdProductStatus, tdActions);
@@ -349,7 +337,7 @@ function loadClients() {
                         });
                         
                         spanActionsEdit.addEventListener("click", () => {
-                            showEdit(client, "clients");
+                            showEdit(client, "clients", tr);
                         });
                         
                         let balance = 0;
@@ -422,7 +410,7 @@ function closeAdd() {
     document.getElementById("add-modal").style.display = "none";
 }
 
-function showEdit(data, section) {
+function showEdit(data, section, row) {
     if (section === "inventory") {
         document.getElementById("edit-modal").style.display = "flex";
         document.getElementById("edit-header").textContent = "Edit Product";
@@ -479,10 +467,17 @@ function showEdit(data, section) {
             .then(response => response.json())
             .then(() => {
                 closeEdit();
-                document.getElementById("products-body").innerHTML = "";
-                inventoryLoaded = false;
-                loadInventory();
-                inventoryLoaded = true;
+
+                data.name = inputProductName.value;
+                data.quantity = inputProductQuantity.value;
+                data.unit = inputProductUnit.value;
+                data.price = inputProductPrice.value;
+
+                row.cells[0].textContent = inputProductName.value;
+                row.cells[1].textContent = Number(inputProductQuantity.value).toLocaleString();
+                row.cells[2].textContent = inputProductUnit.value;
+                row.cells[3].textContent = "$" + Number(inputProductPrice.value).toLocaleString("en", options);
+
             });
         }
     }
@@ -497,9 +492,14 @@ function showEdit(data, section) {
                 <option value="Delivered">Delivered</option>
                 <option value="Cancelled">Cancelled</option>
             </select>`;
-        
-        document.getElementById("edit-arrival-date").value = data.arrival_date.split("T")[0];
-        document.getElementById("statuses").value = data.status;
+
+        const inputArrivalDate = document.getElementById("edit-arrival-date");
+        const inputStatus = document.getElementById("statuses");
+        const spanStatus = document.querySelector("span");
+
+
+        inputArrivalDate.value = data.arrival_date.split("T")[0];
+        inputStatus.value = data.status;
 
         document.getElementById("edit-save").onclick = () => {
             fetch(`http://localhost:8000/api/orders/${data.order_id}`, {
@@ -508,17 +508,22 @@ function showEdit(data, section) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    arrival_date: document.getElementById("edit-arrival-date").value,
-                    status: document.getElementById("statuses").value
+                    arrival_date: inputArrivalDate.value,
+                    status: inputStatus.value
                 })
             })
             .then(response => response.json())
             .then(() => {
                 closeEdit();
-                document.getElementById("orders-body").innerHTML = "";
-                ordersLoaded = false;
-                loadOrders();
-                ordersLoaded = true;
+                
+                data.arrival_date = inputArrivalDate.value;
+                data.status = inputStatus.value;
+
+                row.cells[4].textContent = inputArrivalDate.value;
+                const spanStatus = row.cells[5].querySelector("span");
+                spanStatus.textContent = inputStatus.value;
+                setOrderStatus(spanStatus, inputStatus.value);
+
             });
         }
     }
@@ -548,8 +553,11 @@ function showEdit(data, section) {
             e.target.value = value;
         });
 
-        document.getElementById("edit-client-name").value = data.client_name;
-        document.getElementById("edit-phone").value = data.phone;
+        const inputClientName = document.getElementById("edit-client-name");
+        const inputPhone = document.getElementById("edit-phone");
+
+        inputClientName.value = data.client_name;
+        inputPhone.value = data.phone;
 
         document.getElementById("edit-save").onclick = () => {
             fetch(`http://localhost:8000/api/clients/${data.client_id}`, {
@@ -558,17 +566,19 @@ function showEdit(data, section) {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    client_name: document.getElementById("edit-client-name").value,
-                    phone: document.getElementById("edit-phone").value
+                    client_name: inputClientName.value,
+                    phone: inputPhone.value
                 })
             })
             .then(response => response.json())
             .then(() => {
                 closeEdit();
-                document.getElementById("clients-body").innerHTML = "";
-                clientsLoaded = false;
-                loadClients();
-                clientsLoaded = true;
+                
+                data.client_name = inputClientName.value;
+                data.phone = inputPhone.value;
+
+                row.cells[0].textContent = inputClientName.value;
+                row.cells[1].textContent = inputPhone.value;
             });
         }
     }
@@ -1013,6 +1023,21 @@ function noNegativeInput(input) {
             e.preventDefault();
         }
     });
+}
+
+function setOrderStatus(span, status) {
+    status = span.textContent;
+    if (status === "Delivered") {
+        span.className = "status-delivered";
+    }
+
+    if (status === "Pending") {
+        span.className = "status-pending";
+    }
+
+    if (status === "Cancelled") {
+        span.className = "status-cancelled";
+    }
 }
 
 searchFilter(searchProducts, "products-body", 0);
