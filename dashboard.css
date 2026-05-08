@@ -148,7 +148,7 @@ main {
     align-items: center;
     padding: 15px;
     gap: 10px;
-    min-width: min(350px, 100%); 
+    min-width: 425px;
     width: auto;
     flex: 1;
 }
