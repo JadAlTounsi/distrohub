@@ -23,7 +23,19 @@ function hideAll() {
     inventoryBtn.classList.remove("active");
     ordersBtn.classList.remove("active");
     clientsBtn.classList.remove("active");
+
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+
+    if (mediaQuery.matches) {
+       sideBar.classList.toggle("open"); 
+    }
 }
+
+const menuBtn = document.getElementById("menu-btn");
+const sideBar = document.querySelector(".sidebar");
+menuBtn.addEventListener("click", () => {
+    sideBar.classList.toggle("open");
+});
 
 let inventoryLoaded = false;
 let ordersLoaded = false;

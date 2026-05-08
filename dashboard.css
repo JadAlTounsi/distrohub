@@ -44,6 +44,10 @@ header {
     cursor: pointer;
 }
 
+.hidden {
+    display: none;
+}
+
 #main-nav {
     padding-left: 20px;
 }
@@ -532,6 +536,10 @@ footer {
         -webkit-box-shadow: 8px 1px 22px 5px rgba(0,0,0,0.35);
         -moz-box-shadow: 8px 1px 22px 5px rgba(0,0,0,0.35);
         z-index: 99;
+    }
+
+    .sidebar.open {
+        display: block;
     }
 
     .sidebar ul {
