@@ -35,6 +35,11 @@ overviewBtn.addEventListener("click", () => {
     overviewBtn.classList.add("active");
     title.textContent = "Dashboard Overview";
     location.hash = "overview";
+    ordersLoaded = false;
+    inventoryLoaded = false;
+    clientsLoaded = false;
+
+    overviewLoaded = refreshSection(overviewLoaded, ["recent-orders-body", "low-stock-body"], loadOverview);
 })
 
 inventoryBtn.addEventListener("click", () => {
@@ -43,10 +48,12 @@ inventoryBtn.addEventListener("click", () => {
     inventoryBtn.classList.add("active");
     title.textContent = "Inventory Management";
     location.hash = "inventory";
-    if (!inventoryLoaded) {
-        loadInventory();
-        inventoryLoaded = true;
-    }
+
+    overviewLoaded = false;
+    ordersLoaded = false;
+    clientsLoaded = false;
+    
+    inventoryLoaded = refreshSection(inventoryLoaded, ["products-body"], loadInventory);
 })
 
 ordersBtn.addEventListener("click", () => {
@@ -55,10 +62,12 @@ ordersBtn.addEventListener("click", () => {
     ordersBtn.classList.add("active");
     title.textContent = "Order Management";
     location.hash = "orders";
-    if (!ordersLoaded) {
-        loadOrders();
-        ordersLoaded = true;
-    }
+
+    overviewLoaded = false;
+    inventoryLoaded = false;
+    clientsLoaded = false;
+
+    ordersLoaded = refreshSection(ordersLoaded, ["orders-body"], loadOrders);
 })
 
 clientsBtn.addEventListener("click", () => {
@@ -67,10 +76,12 @@ clientsBtn.addEventListener("click", () => {
     clientsBtn.classList.add("active");
     title.textContent = "Client Management";
     location.hash = "clients";
-    if (!clientsLoaded) {
-        loadClients();
-        clientsLoaded = true;
-    }
+
+    overviewLoaded = false;
+    ordersLoaded = false;
+    inventoryLoaded = false;
+
+    clientsLoaded = refreshSection(clientsLoaded, ["clients-body"], loadClients); 
 })
 
 
@@ -648,9 +659,8 @@ function showAdd(section) {
                 return response.json().then(() => {
                     closeAdd();
                     document.getElementById("products-body").innerHTML = "";
-                    inventoryLoaded = false;
+
                     loadInventory();
-                    inventoryLoaded = true;
                 });
             });
         }
@@ -893,10 +903,8 @@ function showAdd(section) {
                 return response.json().then(() => {
                     closeAdd();
                     document.getElementById("orders-body").innerHTML = "";
-                    ordersLoaded = false;
+
                     loadOrders();
-                    ordersLoaded = true;
-                    inventoryLoaded = false;
                 });
             });
         }
@@ -951,9 +959,8 @@ function showAdd(section) {
                 return response.json().then(() => {
                     closeAdd();
                     document.getElementById("clients-body").innerHTML = "";
-                    clientsLoaded = false;
+
                     loadClients();
-                    clientsLoaded = true;
                 });
             });
         }
@@ -1038,6 +1045,17 @@ function setOrderStatus(span, status) {
     if (status === "Cancelled") {
         span.className = "status-cancelled";
     }
+}
+
+function refreshSection(sectionLoaded, bodyIds, loadSection) {
+    if (!sectionLoaded) {
+        bodyIds.forEach(id => {
+            document.getElementById(id).innerHTML = "";
+        });
+        loadSection();
+        return true;
+    }
+    return sectionLoaded;
 }
 
 searchFilter(searchProducts, "products-body", 0);
