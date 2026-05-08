@@ -184,7 +184,7 @@ main {
 #recent-orders, #low-stock, #products, #orders-table, #clients-table, #items {
     background-color: white;
     border-radius: 10px;
-    overflow: hidden;
+    overflow-x: auto;
     border: 2px solid #adadaf;
     width: 100%;
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
@@ -580,10 +580,6 @@ footer {
 
     .total-inventory span, .pending-orders span, .active-clients span {
         font-size: 60px;
-    }
-
-    #recent-orders, #low-stock, #products {
-        overflow-x: auto;
     }
 
     table {
