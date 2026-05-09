@@ -564,11 +564,9 @@ footer {
     .content {
         margin-left: 0;
     }
-
-    .top-row {
-        flex-direction: column;
+    #search-input-products, #search-input-orders, #search-input-clients {
+        width: 130px;
     }
-
     .bottom-row {
         flex-direction: column;
     }
@@ -578,11 +576,10 @@ footer {
     }
 
     .total-inventory, .pending-orders, .active-clients, #recent-orders, #low-stock {
-        min-width: 290px;
-        width: 100%
+        min-width: 310px;
     }
     
     .inv-numbers h1, .order-numbers h1, .client-numbers h1 {
-        font-size: 25px;
+        font-size: 24px;
     }
 }
