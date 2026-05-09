@@ -524,8 +524,8 @@ footer {
         position: fixed;
         top: 95px;
         left: 0;
-        width: 300px;
-        height: 100vh;
+        height: auto;
+        width: 100vw;
         flex-direction: row;
         box-shadow: 8px 1px 22px 5px rgba(0,0,0,0.35);
         -webkit-box-shadow: 8px 1px 22px 5px rgba(0,0,0,0.35);
