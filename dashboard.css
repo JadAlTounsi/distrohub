@@ -149,7 +149,6 @@ main {
     padding: 15px;
     gap: 10px;
     min-width: 425px;
-    width: auto;
     flex: 1;
 }
 
@@ -193,10 +192,12 @@ main {
 }
 
 #recent-orders {
+    min-width: 620px;
     flex: 2;
 }
 
 #low-stock {
+    min-width: 325px;
     flex: 1;
 }
 
@@ -492,12 +493,6 @@ footer {
     }
 }
 
-@media (max-width: 824px) {
-    #low-stock {
-        order: -1;
-    }
-}
-
 @media (max-width: 768px) {
     header {
         position: fixed;
@@ -582,9 +577,12 @@ footer {
         font-size: 60px;
     }
 
-    table {
-        min-width: 500px;
+    .total-inventory, .pending-orders, .active-clients, #recent-orders, #low-stock {
+        min-width: 290px;
+        width: 100%
     }
-
     
+    .inv-numbers h1, .order-numbers h1, .client-numbers h1 {
+        font-size: 25px;
+    }
 }
