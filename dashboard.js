@@ -126,11 +126,11 @@ function loadOverview() {
             let stringValue = value.toString() / 1000;
 
             if (value > 1000 && value < 1000000) {
-                document.getElementById("value-amount").textContent = "$" + stringValue.toFixed(2) + "K";
+                document.getElementById("value-amount").textContent = `$${stringValue.toFixed(2)}K`;
             } else if (value >= 1000000) {
-                document.getElementById("value-amount").textContent = "$" + stringValue.toFixed(2) + "M";
+                document.getElementById("value-amount").textContent = `$${stringValue.toFixed(2)}M`;
             } else {
-                document.getElementById("value-amount").textContent = "$" + value;
+                document.getElementById("value-amount").textContent = `$${value}`;
             }
 
             document.getElementById("total-items").textContent = sum.toLocaleString();
@@ -164,8 +164,8 @@ function loadOverview() {
                 tdOrderId.textContent = order.order_id;
                 tdClient.textContent = order.client_name;
                 tdDate.textContent = new Date(order.order_date).toISOString().split("T")[0];
-                tdQuantity.textContent = Number(order.total_quantity).toLocaleString() + " items";
-                tdAmount.textContent = "$" + Number(order.total_amount).toLocaleString("en", options);
+                tdQuantity.textContent = `${Number(order.total_quantity).toLocaleString()} items`;
+                tdAmount.textContent = `$${Number(order.total_amount).toLocaleString("en", options)}`;
 
                 tr.append(tdOrderId, tdClient, tdDate, tdQuantity, tdAmount);
 
@@ -217,7 +217,7 @@ function loadOrders() {
 
                 tdOrderId.textContent = order.order_id;
                 tdClient.textContent = order.client_name;
-                tdAmount.textContent = "$" + Number(order.total_amount).toLocaleString("en", options);
+                tdAmount.textContent = `$${Number(order.total_amount).toLocaleString("en", options)}`;
                 tdOrderDate.textContent = new Date(order.order_date).toISOString().split("T")[0];
                 tdArrivalDate.textContent = new Date(order.arrival_date).toISOString().split("T")[0];
                 spanOrderStatus.textContent = order.status;
@@ -233,7 +233,7 @@ function loadOrders() {
                 spanActionsDelete.textContent = "delete";
 
                 spanActionsDelete.addEventListener("click", () => {
-                    showConfirm("Delete Order #" + order.order_id, "Are you sure you want to delete this order for " + order.client_name + "?", () => {
+                    showConfirm(`Delete Order #${order.order_id}`, `Are you sure you want to delete this order for ${order.client_name}?`, () => {
                         deleteRow("orders", order.order_id, tr);
                     });
                 });
@@ -278,7 +278,7 @@ function loadInventory() {
                 tdProduct.textContent = item.name;
                 tdQuantity.textContent = item.quantity.toLocaleString();
                 tdUnit.textContent = item.unit;
-                tdPrice.textContent = "$" + Number(item.price).toLocaleString("en", options);
+                tdPrice.textContent = `$${Number(item.price).toLocaleString("en", options)}`;
                 
                 if (item.quantity <= 0) {
                     spanProductStatus.textContent = "Out of Stock";
@@ -304,7 +304,7 @@ function loadInventory() {
                 tdActions.append(spanActionsEdit, spanActionsDelete);
 
                 spanActionsDelete.addEventListener("click", () => {
-                    showConfirm("Delete Confirmation", "Are you sure you want to delete " + item.name + "?", () => {
+                    showConfirm("Delete Confirmation", `Are you sure you want to delete ${item.name}?`, () => {
                         deleteRow("inventory", item.product_id, tr);
                     });
                 });
@@ -354,7 +354,7 @@ function loadClients() {
                         spanActionsDelete.textContent = "delete";
 
                         spanActionsDelete.addEventListener("click", () => {
-                            showConfirm("Delete Client #" + client.client_id, "Are you sure you want to delete " + client.client_name + "?", () => {
+                            showConfirm(`Delete Client #${client.client_id}`,`Are you sure you want to delete ${client.client_name}?`, () => {
                                 deleteRow("clients", client.client_id, tr);
                             });
                         });
@@ -372,7 +372,7 @@ function loadClients() {
 
                         tdClient.textContent = client.client_name;
                         tdPhone.textContent = client.phone;
-                        tdBalance.textContent = "$" + Number(balance).toLocaleString("en", options);
+                        tdBalance.textContent = `$${Number(balance).toLocaleString("en", options)}`;
                         
                         tdActions.append(spanActionsEdit, spanActionsDelete);
 
@@ -499,7 +499,7 @@ function showEdit(data, section, row) {
                 row.cells[0].textContent = inputProductName.value;
                 row.cells[1].textContent = Number(inputProductQuantity.value).toLocaleString();
                 row.cells[2].textContent = inputProductUnit.value;
-                row.cells[3].textContent = "$" + Number(inputProductPrice.value).toLocaleString("en", options);
+                row.cells[3].textContent = `$${Number(inputProductPrice.value).toLocaleString("en", options)}`;
 
             });
         }
@@ -783,8 +783,8 @@ function showAdd(section) {
                         inputQuantity.max = currentItem.quantity;
                         inputQuantity.disabled = false;
                         totalPrice = Number(inputQuantity.value) * currentItem.price;
-                        previewUnitPrice.textContent = "$" + Number(currentItem.price).toLocaleString("en", options);
-                        previewTotal.textContent = "$" + Number(totalPrice).toLocaleString("en", options);
+                        previewUnitPrice.textContent = `$${Number(currentItem.price).toLocaleString("en", options)}`;
+                        previewTotal.textContent = `$${Number(totalPrice).toLocaleString("en", options)}`;
                     }
                 });
 
@@ -798,7 +798,7 @@ function showAdd(section) {
                             inputQuantity.value = 0;
                         }
                         totalPrice = Number(inputQuantity.value) * currentItem.price;
-                        previewTotal.textContent = "$" + Number(totalPrice).toLocaleString("en", options);
+                        previewTotal.textContent = `$${Number(totalPrice).toLocaleString("en", options)}`;
                     }
                 });
 
@@ -841,8 +841,8 @@ function showAdd(section) {
 
                             if (!itemsAdded.some(addedItem => addedItem.product_id === item.product_id)) {
                                 tdItem.textContent = item.name;
-                                tdUnitPrice.textContent = "$" + item.price;
-                                tdTotal.textContent = "$" + Number(totalPrice).toLocaleString("en", options);
+                                tdUnitPrice.textContent = `$${item.price}`;
+                                tdTotal.textContent = `$${Number(totalPrice).toLocaleString("en", options)}`;
                                 tdQuantity.textContent = Number(inputQuantity.value).toLocaleString();
 
                                 spanActionsDelete.className = "material-symbols-outlined delete-icon";
@@ -996,15 +996,38 @@ function searchFilter(searchSection, bodyId, columnIndex) {
     searchSection.addEventListener("input", (e) => {
         const searchTerm = e.target.value.toLowerCase();
         const rows = document.getElementById(bodyId).querySelectorAll("tr");
+        const body = document.getElementById(bodyId);
+        const existingNoResults = body.querySelector(".no-results-row");
+        if (existingNoResults) {
+            existingNoResults.remove();
+        }
+
+        let rowsFound = 0;  
         rows.forEach(row => {
+            if (row.classList.contains("no-results-row")) {
+                return;
+            }
+
             const text = row.cells[columnIndex].textContent.toLowerCase();
 
             if (text.includes(searchTerm)) {
                 row.style.display = "";
+                rowsFound += 1;
             } else {
                 row.style.display = "none";
             }
         });
+        if (rowsFound === 0 && searchTerm !== "") {
+            const tr = document.createElement("tr");
+            const td = document.createElement("td");
+            const body = document.getElementById(bodyId);
+
+            tr.classList.add("no-results-row");
+            td.textContent = `Nothing found for ${searchTerm}`;
+            td.colSpan = 6;
+            tr.append(td);
+            body.appendChild(tr);
+        }
     });
 }
 
