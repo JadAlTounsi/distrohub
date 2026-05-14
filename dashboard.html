@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
@@ -163,7 +163,12 @@
                             <button id="add-order-btn">Add Order</button>
                         </div>
                     </div>
-                    
+
+                    <div class="order-tabs">
+                        <button class="order-tab active-tab" data-tab="active">Active</button>
+                        <button class="order-tab" data-tab="archived">Cancelled / Delivered</button>
+                    </div>
+
                     <section id="orders-table">
                         <table>
                             <caption>Orders</caption>

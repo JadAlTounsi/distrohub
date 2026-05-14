@@ -233,6 +233,34 @@ td {
     margin-bottom: 20px;
 }
 
+.order-tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #adadaf;
+}
+
+.order-tab {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    font-size: 15px;
+    cursor: pointer;
+    color: #5b7490;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+}
+
+.order-tab:hover {
+    color: #30465e;
+}
+
+.order-tab.active-tab {
+    color: #30465e;
+    border-bottom-color: #30465e;
+    font-weight: 600;
+}
+
 
 .search-products, .search-orders, .search-clients {
     position: relative;

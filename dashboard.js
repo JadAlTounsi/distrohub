@@ -40,6 +40,7 @@ menuBtn.addEventListener("click", () => {
 let inventoryLoaded = false;
 let ordersLoaded = false;
 let clientsLoaded = false;
+let currentOrderTab = "active";
 
 overviewBtn.addEventListener("click", () => {
     hideAll();
@@ -203,6 +204,7 @@ function loadOrders() {
 
             for (const order of data) {
                 const tr = document.createElement("tr");
+                tr.dataset.statusGroup = getStatusGroup(order.status);
 
                 const tdOrderId = document.createElement("td");
                 const tdClient = document.createElement("td");
@@ -225,7 +227,7 @@ function loadOrders() {
                 setOrderStatus(spanOrderStatus, order.status);
 
                 tdOrderStatus.appendChild(spanOrderStatus);
-           
+
                 spanActionsEdit.className = "material-symbols-outlined edit-icon";
                 spanActionsDelete.className = "material-symbols-outlined delete-icon";
 
@@ -237,7 +239,7 @@ function loadOrders() {
                         deleteRow("orders", order.order_id, tr);
                     });
                 });
-                
+
                 spanActionsEdit.addEventListener("click", () => {
                     showEdit(order, "orders", tr);
                 });
@@ -247,6 +249,8 @@ function loadOrders() {
                 tr.append(tdOrderId, tdClient, tdAmount, tdOrderDate, tdArrivalDate, tdOrderStatus, tdActions);
                 ordersBody.appendChild(tr);
             }
+
+            applyOrderFilter();
 
             const addOrderBtn = document.getElementById("add-order-btn");
 
@@ -547,6 +551,8 @@ function showEdit(data, section, row) {
                 spanStatus.textContent = inputStatus.value;
                 setOrderStatus(spanStatus, inputStatus.value);
 
+                row.dataset.statusGroup = getStatusGroup(inputStatus.value);
+                applyOrderFilter();
             });
         }
     }
@@ -992,11 +998,11 @@ function showError(msg) {
     }, 3000);
 }
 
-function searchFilter(searchSection, bodyId, columnIndices) {
-    searchSection.addEventListener("input", (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const rows = document.getElementById(bodyId).querySelectorAll("tr");
+function searchFilter(searchSection, bodyId, columnIndices, rowFilter = () => true) {
+    function applyFilter() {
+        const searchTerm = searchSection.value.toLowerCase();
         const body = document.getElementById(bodyId);
+        const rows = body.querySelectorAll("tr");
         const existingNoResults = body.querySelector(".no-results-row");
         if (existingNoResults) {
             existingNoResults.remove();
@@ -1010,7 +1016,7 @@ function searchFilter(searchSection, bodyId, columnIndices) {
 
             const match = columnIndices.some(col => row.cells[col].textContent.toLowerCase().includes(searchTerm));
 
-            if (match) {
+            if (match && rowFilter(row)) {
                 row.style.display = "";
                 rowsFound += 1;
             } else {
@@ -1020,7 +1026,6 @@ function searchFilter(searchSection, bodyId, columnIndices) {
         if (rowsFound === 0 && searchTerm !== "") {
             const tr = document.createElement("tr");
             const td = document.createElement("td");
-            const body = document.getElementById(bodyId);
 
             tr.classList.add("no-results-row");
             td.textContent = `Nothing found for ${searchTerm}`;
@@ -1028,7 +1033,9 @@ function searchFilter(searchSection, bodyId, columnIndices) {
             tr.append(td);
             body.appendChild(tr);
         }
-    });
+    }
+    searchSection.addEventListener("input", applyFilter);
+    return applyFilter;
 }
 
 function maxTwoDecimalPlaces(input) {
@@ -1067,6 +1074,13 @@ function noNegativeInput(input) {
     });
 }
 
+function getStatusGroup(status) {
+    if (status === "Pending") {
+        return "active";
+    }
+    return "archived";
+}
+
 function setOrderStatus(span, status) {
     status = span.textContent;
     if (status === "Delivered") {
@@ -1094,8 +1108,16 @@ function refreshSection(sectionLoaded, bodyIds, loadSection) {
 }
 
 searchFilter(searchProducts, "products-body", [0]);
-searchFilter(searchOrders, "orders-body", [0, 1]);
+const applyOrderFilter = searchFilter(searchOrders, "orders-body", [0, 1], row => row.dataset.statusGroup === currentOrderTab);
 searchFilter(searchClients, "clients-body", [0]);
+
+document.querySelectorAll(".order-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+        currentOrderTab = tab.dataset.tab;
+        document.querySelectorAll(".order-tab").forEach(t => t.classList.toggle("active-tab", t === tab));
+        applyOrderFilter();
+    });
+});
 
 loadOverview();
 
