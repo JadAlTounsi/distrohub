@@ -992,7 +992,7 @@ function showError(msg) {
     }, 3000);
 }
 
-function searchFilter(searchSection, bodyId, columnIndex) {
+function searchFilter(searchSection, bodyId, columnIndices) {
     searchSection.addEventListener("input", (e) => {
         const searchTerm = e.target.value.toLowerCase();
         const rows = document.getElementById(bodyId).querySelectorAll("tr");
@@ -1002,15 +1002,15 @@ function searchFilter(searchSection, bodyId, columnIndex) {
             existingNoResults.remove();
         }
 
-        let rowsFound = 0;  
+        let rowsFound = 0;
         rows.forEach(row => {
             if (row.classList.contains("no-results-row")) {
                 return;
             }
 
-            const text = row.cells[columnIndex].textContent.toLowerCase();
+            const match = columnIndices.some(col => row.cells[col].textContent.toLowerCase().includes(searchTerm));
 
-            if (text.includes(searchTerm)) {
+            if (match) {
                 row.style.display = "";
                 rowsFound += 1;
             } else {
@@ -1024,7 +1024,7 @@ function searchFilter(searchSection, bodyId, columnIndex) {
 
             tr.classList.add("no-results-row");
             td.textContent = `Nothing found for ${searchTerm}`;
-            td.colSpan = 6;
+            td.colSpan = 7;
             tr.append(td);
             body.appendChild(tr);
         }
@@ -1093,9 +1093,9 @@ function refreshSection(sectionLoaded, bodyIds, loadSection) {
     return sectionLoaded;
 }
 
-searchFilter(searchProducts, "products-body", 0);
-searchFilter(searchOrders, "orders-body", 1);
-searchFilter(searchClients, "clients-body", 0);
+searchFilter(searchProducts, "products-body", [0]);
+searchFilter(searchOrders, "orders-body", [0, 1]);
+searchFilter(searchClients, "clients-body", [0]);
 
 loadOverview();
 
