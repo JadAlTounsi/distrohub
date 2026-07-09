@@ -44,8 +44,6 @@ export const getOrder = async (req, res, next) => {
 
 export const createOrder = async (req, res, next) => {
     const client_id = parseInt(req.body.client_id);
-    const orderDate = new Date();
-    const arrivalDate = new Date(req.body.arrival_date);
     const items = req.body.items;
 
     if (!client_id || !req.body.arrival_date || items.length === 0) {
@@ -53,23 +51,26 @@ export const createOrder = async (req, res, next) => {
         error.status = 400;
         return next(error);
     }
-    const orderDateFormatted = orderDate.toISOString().split("T")[0];
-    const arrivalDateFormatted = arrivalDate.toISOString().split("T")[0];
 
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     const isValidDate = dateRegex.test(req.body.arrival_date);
+    const arrivalDate = new Date(req.body.arrival_date);
+
+    if (!isValidDate || Number.isNaN(arrivalDate.getTime())) {
+        const error = new Error("Dates should be in YYYY-MM-DD format")
+        error.status = 400;
+        return next(error);
+    }
+
+    const orderDate = new Date();
+    const orderDateFormatted = orderDate.toISOString().split("T")[0];
+    const arrivalDateFormatted = arrivalDate.toISOString().split("T")[0];
 
     const [client] = await db.query("SELECT * FROM clients WHERE client_id = ?",[client_id]);
 
     if (client.length === 0) {
         const error = new Error(`Client ${client_id} could not be found`);
         error.status = 404;
-        return next(error);
-    }
-
-    if (!isValidDate) {
-        const error = new Error("Dates should be in YYYY-MM-DD format")
-        error.status = 400;
         return next(error);
     }
 
@@ -163,6 +164,13 @@ export const updateOrder = async (req, res, next) => {
 
     if (!isValidDate) {
         const error = new Error("Dates should be in YYYY-MM-DD format")
+        error.status = 400;
+        return next(error);
+    }
+
+    const validStatuses = ["Pending", "Delivered", "Cancelled"];
+    if (!validStatuses.includes(status)) {
+        const error = new Error("Status must be one of Pending, Delivered, or Cancelled");
         error.status = 400;
         return next(error);
     }

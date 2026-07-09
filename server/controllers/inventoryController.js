@@ -31,7 +31,7 @@ export const createProduct = async (req, res, next) => {
         price: parseFloat(req.body.price)
     }
 
-    if (!newProduct.name || newProduct.quantity === undefined || !newProduct.unit || newProduct.price === undefined) {
+    if (!newProduct.name || !newProduct.unit || Number.isNaN(newProduct.quantity) || Number.isNaN(newProduct.price)) {
         const error = new Error("Name, quantity, unit, or price is blank");
         error.status = 400;
         return next(error);
@@ -57,9 +57,22 @@ export const updateProduct = async (req, res, next) => {
         return next(error);
     }
 
+    const updatedProduct = {
+        name: req.body.name,
+        quantity: parseInt(req.body.quantity),
+        unit: req.body.unit,
+        price: parseFloat(req.body.price)
+    }
+
+    if (!updatedProduct.name || !updatedProduct.unit || Number.isNaN(updatedProduct.quantity) || Number.isNaN(updatedProduct.price)) {
+        const error = new Error("Name, quantity, unit, or price is blank");
+        error.status = 400;
+        return next(error);
+    }
+
     await db.query(
         "UPDATE inventory SET name = ?, quantity = ?, unit = ?, price = ? WHERE product_id = ?",
-        [req.body.name, parseInt(req.body.quantity), req.body.unit, parseFloat(req.body.price), id]
+        [updatedProduct.name, updatedProduct.quantity, updatedProduct.unit, updatedProduct.price, id]
     );
     const [updatedInventory] = await db.query("SELECT * FROM inventory");
     res.status(200).json(updatedInventory);
