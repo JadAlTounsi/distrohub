@@ -1,21 +1,21 @@
 import db from "../config/db.js";
 
-async function reverseOrderCommitment(orderId, clientId) {
-    const [items] = await db.query("SELECT * FROM order_items WHERE order_id = ?", [orderId]);
+async function reverseOrderCommitment(conn, orderId, clientId) {
+    const [items] = await conn.query("SELECT * FROM order_items WHERE order_id = ?", [orderId]);
 
     for (const item of items) {
-        await db.query(
+        await conn.query(
             "UPDATE inventory SET quantity = quantity + ? WHERE product_id = ?",
             [item.order_quantity, item.product_id]
         );
     }
 
-    const [totalRows] = await db.query(
+    const [totalRows] = await conn.query(
         "SELECT COALESCE(SUM(order_quantity * order_price), 0) AS total FROM order_items WHERE order_id = ?",
         [orderId]
     );
 
-    await db.query("UPDATE clients SET balance = balance - ? WHERE client_id = ?", [totalRows[0].total, clientId]);
+    await conn.query("UPDATE clients SET balance = balance - ? WHERE client_id = ?", [totalRows[0].total, clientId]);
 }
 
 export const getOrders = async (req, res) => {
@@ -24,7 +24,7 @@ export const getOrders = async (req, res) => {
         const [orders] = await db.query("SELECT orders.order_id, clients.client_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE orders.is_active = TRUE GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC LIMIT ?", [limit]);
         return res.status(200).json(orders);
     }
-    
+
     const [orders] = await db.query("SELECT orders.order_id, clients.client_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE orders.is_active = TRUE GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC");
     res.status(200).json(orders);
 }
@@ -79,26 +79,65 @@ export const createOrder = async (req, res, next) => {
         arrival_date: arrivalDateFormatted
     }
 
-    const [result] = await db.query(
-        "INSERT INTO orders (client_id, order_date, arrival_date) VALUES (?, ?, ?)",
-        [newOrder.client_id, newOrder.order_date, newOrder.arrival_date]
-    );
-    newOrder.order_id = result.insertId;
+    const conn = await db.getConnection();
 
-    let orderTotal = 0;
-    for (const item of items) {
-        await db.query(
-            "INSERT INTO order_items (order_id, product_id, order_quantity, order_price) VALUES (?, ?, ?, ?)",
-            [newOrder.order_id, item.product_id, item.order_quantity, item.unit_price]
+    try {
+        await conn.beginTransaction();
+
+        const [result] = await conn.query(
+            "INSERT INTO orders (client_id, order_date, arrival_date) VALUES (?, ?, ?)",
+            [newOrder.client_id, newOrder.order_date, newOrder.arrival_date]
         );
-        await db.query(
-            "UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?",
-            [item.order_quantity, item.product_id]
-        );
-        orderTotal += item.order_quantity * item.unit_price;
+        newOrder.order_id = result.insertId;
+
+        let orderTotal = 0;
+        for (const item of items) {
+            const quantity = parseInt(item.order_quantity);
+            if (!quantity || quantity <= 0) {
+                const error = new Error("Item quantity must be a positive number");
+                error.status = 400;
+                throw error;
+            }
+
+            const [productRows] = await conn.query(
+                "SELECT name, quantity FROM inventory WHERE product_id = ? FOR UPDATE",
+                [item.product_id]
+            );
+
+            if (productRows.length === 0) {
+                const error = new Error(`Product ${item.product_id} could not be found`);
+                error.status = 404;
+                throw error;
+            }
+
+            if (productRows[0].quantity < quantity) {
+                const error = new Error(
+                    `Not enough stock for ${productRows[0].name} (requested ${quantity}, only ${productRows[0].quantity} available)`
+                );
+                error.status = 409;
+                throw error;
+            }
+
+            await conn.query(
+                "INSERT INTO order_items (order_id, product_id, order_quantity, order_price) VALUES (?, ?, ?, ?)",
+                [newOrder.order_id, item.product_id, quantity, item.unit_price]
+            );
+            await conn.query(
+                "UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?",
+                [quantity, item.product_id]
+            );
+            orderTotal += quantity * item.unit_price;
+        }
+
+        await conn.query("UPDATE clients SET balance = balance + ? WHERE client_id = ?", [orderTotal, client_id]);
+
+        await conn.commit();
+    } catch (error) {
+        await conn.rollback();
+        return next(error);
+    } finally {
+        conn.release();
     }
-
-    await db.query("UPDATE clients SET balance = balance + ? WHERE client_id = ?", [orderTotal, client_id]);
 
     const [updatedOrders] = await db.query("SELECT * FROM orders");
     res.status(201).json(updatedOrders);
@@ -128,13 +167,26 @@ export const updateOrder = async (req, res, next) => {
         return next(error);
     }
 
-    if (status === "Cancelled" && order[0].status !== "Cancelled") {
-        await reverseOrderCommitment(id, order[0].client_id);
-    }
+    const conn = await db.getConnection();
 
-    await db.query("UPDATE orders SET arrival_date = ?, status = ? WHERE order_id = ?",
-        [arrivalDate, status, id]
-    );
+    try {
+        await conn.beginTransaction();
+
+        if (status === "Cancelled" && order[0].status !== "Cancelled") {
+            await reverseOrderCommitment(conn, id, order[0].client_id);
+        }
+
+        await conn.query("UPDATE orders SET arrival_date = ?, status = ? WHERE order_id = ?",
+            [arrivalDate, status, id]
+        );
+
+        await conn.commit();
+    } catch (error) {
+        await conn.rollback();
+        return next(error);
+    } finally {
+        conn.release();
+    }
 
     const [orders] = await db.query("SELECT * FROM orders");
     res.status(200).json(orders);
@@ -150,11 +202,24 @@ export const deleteOrder = async (req, res, next) => {
         return next(error);
     }
 
-    if (order[0].status === "Pending") {
-        await reverseOrderCommitment(id, order[0].client_id);
-    }
+    const conn = await db.getConnection();
 
-    await db.query("UPDATE orders SET is_active = FALSE WHERE order_id = ?", [id]);
+    try {
+        await conn.beginTransaction();
+
+        if (order[0].status === "Pending") {
+            await reverseOrderCommitment(conn, id, order[0].client_id);
+        }
+
+        await conn.query("UPDATE orders SET is_active = FALSE WHERE order_id = ?", [id]);
+
+        await conn.commit();
+    } catch (error) {
+        await conn.rollback();
+        return next(error);
+    } finally {
+        conn.release();
+    }
 
     const [orders] = await db.query("SELECT * FROM orders");
     res.status(200).json(orders);
