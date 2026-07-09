@@ -336,54 +336,40 @@ function loadClients() {
         .then(data => {
             const clientsBody = document.getElementById("clients-body");
 
-            fetch("http://localhost:8000/api/orders")
-                .then(response => response.json())
-                .then(orders => {
-                    for (const client of data) {
-                        const tr = document.createElement("tr");
-                        const tdClient = document.createElement("td");
-                        const tdPhone = document.createElement("td");
-                        const tdBalance = document.createElement("td");
-                        const tdActions = document.createElement("td");
-                        const spanActionsEdit = document.createElement("span");
-                        const spanActionsDelete = document.createElement("span");
+            for (const client of data) {
+                const tr = document.createElement("tr");
+                const tdClient = document.createElement("td");
+                const tdPhone = document.createElement("td");
+                const tdBalance = document.createElement("td");
+                const tdActions = document.createElement("td");
+                const spanActionsEdit = document.createElement("span");
+                const spanActionsDelete = document.createElement("span");
 
-                        tdClient.textContent = client.client_name;
-                        tdPhone.textContent = client.phone;                
+                tdClient.textContent = client.client_name;
+                tdPhone.textContent = client.phone;
+                tdBalance.textContent = `$${Number(client.balance).toLocaleString("en", options)}`;
 
-                        spanActionsEdit.className = "material-symbols-outlined edit-icon";
-                        spanActionsDelete.className = "material-symbols-outlined delete-icon";
+                spanActionsEdit.className = "material-symbols-outlined edit-icon";
+                spanActionsDelete.className = "material-symbols-outlined delete-icon";
 
-                        spanActionsEdit.textContent = "edit_square";
-                        spanActionsDelete.textContent = "delete";
+                spanActionsEdit.textContent = "edit_square";
+                spanActionsDelete.textContent = "delete";
 
-                        spanActionsDelete.addEventListener("click", () => {
-                            showConfirm(`Delete Client #${client.client_id}`,`Are you sure you want to delete ${client.client_name}?`, () => {
-                                deleteRow("clients", client.client_id, tr);
-                            });
-                        });
-                        
-                        spanActionsEdit.addEventListener("click", () => {
-                            showEdit(client, "clients", tr);
-                        });
-                        
-                        let balance = 0;
-                        const clientOrders = orders.filter(order => order.client_id === client.client_id);
-                        
-                        for (const order of clientOrders) {
-                            balance += Number(order.total_amount);
-                        }
-
-                        tdClient.textContent = client.client_name;
-                        tdPhone.textContent = client.phone;
-                        tdBalance.textContent = `$${Number(balance).toLocaleString("en", options)}`;
-                        
-                        tdActions.append(spanActionsEdit, spanActionsDelete);
-
-                        tr.append(tdClient, tdPhone, tdBalance, tdActions);
-                        clientsBody.appendChild(tr);
-                    }
+                spanActionsDelete.addEventListener("click", () => {
+                    showConfirm(`Delete Client #${client.client_id}`,`Are you sure you want to delete ${client.client_name}?`, () => {
+                        deleteRow("clients", client.client_id, tr);
+                    });
                 });
+
+                spanActionsEdit.addEventListener("click", () => {
+                    showEdit(client, "clients", tr);
+                });
+
+                tdActions.append(spanActionsEdit, spanActionsDelete);
+
+                tr.append(tdClient, tdPhone, tdBalance, tdActions);
+                clientsBody.appendChild(tr);
+            }
 
             const addClientBtn = document.getElementById("add-client-btn");
 

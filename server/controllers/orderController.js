@@ -1,5 +1,23 @@
 import db from "../config/db.js";
 
+async function reverseOrderCommitment(orderId, clientId) {
+    const [items] = await db.query("SELECT * FROM order_items WHERE order_id = ?", [orderId]);
+
+    for (const item of items) {
+        await db.query(
+            "UPDATE inventory SET quantity = quantity + ? WHERE product_id = ?",
+            [item.order_quantity, item.product_id]
+        );
+    }
+
+    const [totalRows] = await db.query(
+        "SELECT COALESCE(SUM(order_quantity * order_price), 0) AS total FROM order_items WHERE order_id = ?",
+        [orderId]
+    );
+
+    await db.query("UPDATE clients SET balance = balance - ? WHERE client_id = ?", [totalRows[0].total, clientId]);
+}
+
 export const getOrders = async (req, res) => {
     const limit = parseInt(req.query.limit);
     if (!isNaN(limit) && limit > 0) {
@@ -67,6 +85,7 @@ export const createOrder = async (req, res, next) => {
     );
     newOrder.order_id = result.insertId;
 
+    let orderTotal = 0;
     for (const item of items) {
         await db.query(
             "INSERT INTO order_items (order_id, product_id, order_quantity, order_price) VALUES (?, ?, ?, ?)",
@@ -76,7 +95,10 @@ export const createOrder = async (req, res, next) => {
             "UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?",
             [item.order_quantity, item.product_id]
         );
+        orderTotal += item.order_quantity * item.unit_price;
     }
+
+    await db.query("UPDATE clients SET balance = balance + ? WHERE client_id = ?", [orderTotal, client_id]);
 
     const [updatedOrders] = await db.query("SELECT * FROM orders");
     res.status(201).json(updatedOrders);
@@ -106,6 +128,10 @@ export const updateOrder = async (req, res, next) => {
         return next(error);
     }
 
+    if (status === "Cancelled" && order[0].status !== "Cancelled") {
+        await reverseOrderCommitment(id, order[0].client_id);
+    }
+
     await db.query("UPDATE orders SET arrival_date = ?, status = ? WHERE order_id = ?",
         [arrivalDate, status, id]
     );
@@ -122,6 +148,10 @@ export const deleteOrder = async (req, res, next) => {
         const error = new Error(`Order ${id} could not be found`);
         error.status = 404;
         return next(error);
+    }
+
+    if (order[0].status === "Pending") {
+        await reverseOrderCommitment(id, order[0].client_id);
     }
 
     await db.query("UPDATE orders SET is_active = FALSE WHERE order_id = ?", [id]);
