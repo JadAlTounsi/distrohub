@@ -42,6 +42,9 @@ let ordersLoaded = false;
 let clientsLoaded = false;
 let currentOrderTab = "active";
 
+const TABLE_PAGE_SIZE = 15;
+const TABLE_PAGE_WINDOW = 5;
+
 let revenueChart = null;
 let ordersChart = null;
 let currentChartGranularity = "month";
@@ -234,9 +237,12 @@ function loadOverview() {
                 if (currDate > arrivalDate) {
                     overdue += 1;
                 }
+            }
 
+            const recentOrders = data.slice(0, 10);
+            for (const order of recentOrders) {
                 const tr = document.createElement("tr");
-                
+
                 const tdOrderId = document.createElement("td");
                 const tdClient = document.createElement("td");
                 const tdDate = document.createElement("td");
@@ -558,7 +564,7 @@ function loadOrders() {
 
                 spanActionsDelete.addEventListener("click", () => {
                     showConfirm(`Delete Order #${order.order_id}`, `Are you sure you want to delete this order for ${order.client_name}?`, () => {
-                        deleteRow("orders", order.order_id, tr);
+                        deleteRow("orders", order.order_id, tr, ordersFilter.apply);
                     });
                 });
 
@@ -572,7 +578,7 @@ function loadOrders() {
                 ordersBody.appendChild(tr);
             }
 
-            applyOrderFilter();
+            ordersFilter.apply();
 
             const addOrderBtn = document.getElementById("add-order-btn");
 
@@ -631,10 +637,10 @@ function loadInventory() {
 
                 spanActionsDelete.addEventListener("click", () => {
                     showConfirm("Delete Confirmation", `Are you sure you want to delete ${item.name}?`, () => {
-                        deleteRow("inventory", item.product_id, tr);
+                        deleteRow("inventory", item.product_id, tr, inventoryFilter.apply);
                     });
                 });
-                
+
                 spanActionsEdit.addEventListener("click", () => {
                     showEdit(item, "inventory", tr);
                 });
@@ -643,6 +649,8 @@ function loadInventory() {
                 productsBody.appendChild(tr);
 
             }
+
+            inventoryFilter.apply();
 
             const addProductBtn = document.getElementById("add-product-btn");
 
@@ -679,7 +687,7 @@ function loadClients() {
 
                 spanActionsDelete.addEventListener("click", () => {
                     showConfirm(`Delete Client #${client.client_id}`,`Are you sure you want to delete ${client.client_name}?`, () => {
-                        deleteRow("clients", client.client_id, tr);
+                        deleteRow("clients", client.client_id, tr, clientsFilter.apply);
                     });
                 });
 
@@ -693,6 +701,8 @@ function loadClients() {
                 clientsBody.appendChild(tr);
             }
 
+            clientsFilter.apply();
+
             const addClientBtn = document.getElementById("add-client-btn");
 
             addClientBtn.addEventListener("click", () => {
@@ -701,7 +711,7 @@ function loadClients() {
         });
 }
 
-function deleteRow(endpoint, id, row) {
+function deleteRow(endpoint, id, row, onSuccess) {
 
     fetch(`http://localhost:8000/api/${endpoint}/${id}`, {
         method: "DELETE"
@@ -714,6 +724,9 @@ function deleteRow(endpoint, id, row) {
         }
         return response.json().then(() => {
             row.remove();
+            if (onSuccess) {
+                onSuccess();
+            }
         });
     });
 }
@@ -866,7 +879,7 @@ function showEdit(data, section, row) {
                 setOrderStatus(spanStatus, inputStatus.value);
 
                 row.dataset.statusGroup = getStatusGroup(inputStatus.value);
-                applyOrderFilter();
+                ordersFilter.apply();
             });
         }
     }
@@ -1312,44 +1325,142 @@ function showError(msg) {
     }, 3000);
 }
 
-function searchFilter(searchSection, bodyId, columnIndices, rowFilter = () => true) {
-    function applyFilter() {
-        const searchTerm = searchSection.value.toLowerCase();
+function setupPagedFilter(config) {
+    const {
+        searchInput,
+        bodyId,
+        columnIndices,
+        rowFilter = () => true,
+        paginationId,
+        pageNumbersId,
+        prevBtnId,
+        nextBtnId,
+        pageSize,
+        pageWindow,
+        noResultsColSpan
+    } = config;
+
+    let currentPage = 1;
+    let totalPages = 1;
+
+    function apply() {
+        const searchTerm = searchInput.value.toLowerCase();
         const body = document.getElementById(bodyId);
-        const rows = body.querySelectorAll("tr");
         const existingNoResults = body.querySelector(".no-results-row");
         if (existingNoResults) {
             existingNoResults.remove();
         }
 
-        let rowsFound = 0;
+        const rows = Array.from(body.querySelectorAll("tr")).filter(row => !row.classList.contains("no-results-row"));
+
+        const matchingRows = rows.filter(row => {
+            const textMatch = columnIndices.some(col => row.cells[col].textContent.toLowerCase().includes(searchTerm));
+            return textMatch && rowFilter(row);
+        });
+
         rows.forEach(row => {
-            if (row.classList.contains("no-results-row")) {
-                return;
-            }
-
-            const match = columnIndices.some(col => row.cells[col].textContent.toLowerCase().includes(searchTerm));
-
-            if (match && rowFilter(row)) {
-                row.style.display = "";
-                rowsFound += 1;
-            } else {
+            if (!matchingRows.includes(row)) {
                 row.style.display = "none";
             }
         });
-        if (rowsFound === 0 && searchTerm !== "") {
-            const tr = document.createElement("tr");
-            const td = document.createElement("td");
 
-            tr.classList.add("no-results-row");
-            td.textContent = `Nothing found for ${searchTerm}`;
-            td.colSpan = 7;
-            tr.append(td);
-            body.appendChild(tr);
+        if (matchingRows.length === 0) {
+            if (searchTerm !== "") {
+                const tr = document.createElement("tr");
+                const td = document.createElement("td");
+
+                tr.classList.add("no-results-row");
+                td.textContent = `Nothing found for ${searchTerm}`;
+                td.colSpan = noResultsColSpan;
+                tr.append(td);
+                body.appendChild(tr);
+            }
+
+            currentPage = 1;
+            totalPages = 1;
+            renderPagination(0);
+            return;
+        }
+
+        totalPages = Math.ceil(matchingRows.length / pageSize);
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const pageRows = matchingRows.slice(startIndex, startIndex + pageSize);
+
+        matchingRows.forEach(row => {
+            row.style.display = pageRows.includes(row) ? "" : "none";
+        });
+
+        renderPagination(totalPages);
+    }
+
+    function renderPagination(pages) {
+        const pagination = document.getElementById(paginationId);
+        const pageNumbers = document.getElementById(pageNumbersId);
+        const prevBtn = document.getElementById(prevBtnId);
+        const nextBtn = document.getElementById(nextBtnId);
+
+        if (pages === 0) {
+            pagination.style.display = "none";
+            return;
+        }
+
+        pagination.style.display = "flex";
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === pages;
+
+        let start = Math.max(1, currentPage - Math.floor(pageWindow / 2));
+        let end = Math.min(pages, start + pageWindow - 1);
+        start = Math.max(1, end - pageWindow + 1);
+
+        pageNumbers.innerHTML = "";
+        for (let page = start; page <= end; page++) {
+            const pageBtn = document.createElement("button");
+            pageBtn.className = "page-number";
+            if (page === currentPage) {
+                pageBtn.classList.add("active-page");
+            }
+            pageBtn.textContent = page;
+            pageBtn.addEventListener("click", () => {
+                currentPage = page;
+                apply();
+            });
+            pageNumbers.appendChild(pageBtn);
         }
     }
-    searchSection.addEventListener("input", applyFilter);
-    return applyFilter;
+
+    searchInput.addEventListener("input", () => {
+        currentPage = 1;
+        apply();
+    });
+
+    document.getElementById(prevBtnId).addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage -= 1;
+            apply();
+        }
+    });
+
+    document.getElementById(nextBtnId).addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage += 1;
+            apply();
+        }
+    });
+
+    return {
+        apply,
+        resetAndApply() {
+            currentPage = 1;
+            apply();
+        }
+    };
 }
 
 function maxTwoDecimalPlaces(input) {
@@ -1421,15 +1532,51 @@ function refreshSection(sectionLoaded, bodyIds, loadSection) {
     return sectionLoaded;
 }
 
-searchFilter(searchProducts, "products-body", [0]);
-const applyOrderFilter = searchFilter(searchOrders, "orders-body", [0, 1], row => row.dataset.statusGroup === currentOrderTab);
-searchFilter(searchClients, "clients-body", [0]);
+const inventoryFilter = setupPagedFilter({
+    searchInput: searchProducts,
+    bodyId: "products-body",
+    columnIndices: [0],
+    paginationId: "inventory-pagination",
+    pageNumbersId: "inventory-page-numbers",
+    prevBtnId: "inventory-prev-page",
+    nextBtnId: "inventory-next-page",
+    pageSize: TABLE_PAGE_SIZE,
+    pageWindow: TABLE_PAGE_WINDOW,
+    noResultsColSpan: 6
+});
+
+const clientsFilter = setupPagedFilter({
+    searchInput: searchClients,
+    bodyId: "clients-body",
+    columnIndices: [0],
+    paginationId: "clients-pagination",
+    pageNumbersId: "clients-page-numbers",
+    prevBtnId: "clients-prev-page",
+    nextBtnId: "clients-next-page",
+    pageSize: TABLE_PAGE_SIZE,
+    pageWindow: TABLE_PAGE_WINDOW,
+    noResultsColSpan: 4
+});
+
+const ordersFilter = setupPagedFilter({
+    searchInput: searchOrders,
+    bodyId: "orders-body",
+    columnIndices: [0, 1],
+    rowFilter: row => row.dataset.statusGroup === currentOrderTab,
+    paginationId: "orders-pagination",
+    pageNumbersId: "orders-page-numbers",
+    prevBtnId: "orders-prev-page",
+    nextBtnId: "orders-next-page",
+    pageSize: TABLE_PAGE_SIZE,
+    pageWindow: TABLE_PAGE_WINDOW,
+    noResultsColSpan: 7
+});
 
 document.querySelectorAll(".order-tab").forEach(tab => {
     tab.addEventListener("click", () => {
         currentOrderTab = tab.dataset.tab;
         document.querySelectorAll(".order-tab").forEach(t => t.classList.toggle("active-tab", t === tab));
-        applyOrderFilter();
+        ordersFilter.resetAndApply();
     });
 });
 
