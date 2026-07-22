@@ -85,6 +85,27 @@
                         </div>
                     </div>
 
+                    <section id="revenue-chart-section">
+                        <div class="chart-tabs">
+                            <button class="chart-tab" data-granularity="day">Day</button>
+                            <button class="chart-tab" data-granularity="week">Week</button>
+                            <button class="chart-tab active-tab" data-granularity="month">Month</button>
+                            <button class="chart-tab" data-granularity="year">Year</button>
+                        </div>
+                        <div class="chart-panel">
+                            <p class="chart-eyebrow">Revenue</p>
+                            <div class="chart-canvas-wrap chart-canvas-wrap--primary">
+                                <canvas id="revenue-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel">
+                            <p class="chart-eyebrow">Orders</p>
+                            <div class="chart-canvas-wrap chart-canvas-wrap--secondary">
+                                <canvas id="orders-chart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+
                     <div class="bottom-row">
                         <section id="recent-orders">
                             <table id="recent-orders-table">
@@ -260,6 +281,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
     <script src="dashboard.js"></script>
 </body>
 

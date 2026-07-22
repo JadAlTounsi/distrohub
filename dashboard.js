@@ -42,6 +42,87 @@ let ordersLoaded = false;
 let clientsLoaded = false;
 let currentOrderTab = "active";
 
+let revenueChart = null;
+let ordersChart = null;
+let currentChartGranularity = "month";
+let cachedOverviewOrders = [];
+let chartActiveIndex = null;
+
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = "#5b7490";
+
+const CHART_GRID_COLOR = "rgba(173, 173, 175, 0.35)";
+const CHART_Y_AXIS_WIDTH = 56;
+
+const sharedCrosshairPlugin = {
+    id: "sharedCrosshair",
+    afterDraw(chart) {
+        if (chartActiveIndex === null) return;
+        const xScale = chart.scales.x;
+        if (!xScale) return;
+
+        const x = xScale.getPixelForValue(chartActiveIndex);
+        const { top, bottom } = chart.chartArea;
+        const ctx = chart.ctx;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, bottom);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(48, 70, 94, 0.35)";
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.restore();
+    }
+};
+
+function applyActiveIndexToChart(chart, index) {
+    if (!chart) return;
+
+    if (index === null) {
+        chart.setActiveElements([]);
+    } else {
+        chart.setActiveElements(chart.data.datasets.map((dataset, datasetIndex) => ({ datasetIndex, index })));
+    }
+    chart.update("none");
+}
+
+function setChartActiveIndex(index) {
+    if (chartActiveIndex === index) return;
+    chartActiveIndex = index;
+    applyActiveIndexToChart(revenueChart, index);
+    applyActiveIndexToChart(ordersChart, index);
+}
+
+function clearChartActiveIndex() {
+    if (chartActiveIndex === null) return;
+    chartActiveIndex = null;
+    applyActiveIndexToChart(revenueChart, null);
+    applyActiveIndexToChart(ordersChart, null);
+}
+
+function sharedTooltipOptions() {
+    return {
+        backgroundColor: "#30465e",
+        titleColor: "#ffffff",
+        bodyColor: "#ffffff",
+        titleFont: { family: "'Inter', sans-serif", size: 12, weight: "600" },
+        bodyFont: { family: "'Inter', sans-serif", size: 12 },
+        padding: 10,
+        cornerRadius: 6,
+        displayColors: false,
+        caretSize: 5
+    };
+}
+
+function fixedYAxisWidth(scale) {
+    scale.width = CHART_Y_AXIS_WIDTH;
+}
+
 overviewBtn.addEventListener("click", () => {
     hideAll();
     overviewSection.style.display="block";
@@ -174,6 +255,9 @@ function loadOverview() {
             }
             document.getElementById("active-orders").textContent = active.toLocaleString();
             document.getElementById("overdue").textContent = overdue.toLocaleString();
+
+            cachedOverviewOrders = data;
+            renderRevenueChart(cachedOverviewOrders, currentChartGranularity);
         });
 
     fetch("http://localhost:8000/api/clients")
@@ -194,6 +278,244 @@ function loadOverview() {
             document.getElementById("total-clients").textContent = clients.toLocaleString();
             document.getElementById("total-new-clients").textContent = newClients.toLocaleString();
         });
+}
+
+function getBucketKey(date, granularity) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    if (granularity === "day") return `${year}-${month}-${day}`;
+
+    if (granularity === "week") {
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        return `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, "0")}-${String(weekStart.getDate()).padStart(2, "0")}`;
+    }
+
+    if (granularity === "month") return `${year}-${month}`;
+
+    return `${year}`;
+}
+
+function formatBucketLabel(key, granularity) {
+    if (granularity === "day" || granularity === "week") {
+        const label = new Date(`${key}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+        if (granularity === "week") {
+            return `Week of ${label}`;
+        }
+        return label;
+    }
+
+    if (granularity === "month") {
+        const [year, month] = key.split("-");
+        return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    }
+
+    return key;
+}
+
+function stepBucket(date, granularity) {
+    const next = new Date(date);
+    if (granularity === "day") next.setDate(next.getDate() + 1);
+    else if (granularity === "week") next.setDate(next.getDate() + 7);
+    else if (granularity === "month") next.setMonth(next.getMonth() + 1);
+    else next.setFullYear(next.getFullYear() + 1);
+    return next;
+}
+
+function buildChartData(orders, granularity) {
+    const now = new Date();
+    let cutoff = null;
+
+    if (granularity === "day") {
+        cutoff = new Date(now);
+        cutoff.setDate(cutoff.getDate() - 29);
+    } else if (granularity === "week") {
+        cutoff = new Date(now);
+        cutoff.setDate(cutoff.getDate() - 83);
+    }
+
+    const relevantOrders = orders.filter(order => {
+        if (order.status === "Cancelled") return false;
+        if (cutoff && new Date(order.order_date) < cutoff) return false;
+        return true;
+    });
+
+    if (relevantOrders.length === 0) {
+        return { labels: [], revenue: [], counts: [] };
+    }
+
+    const buckets = new Map();
+    for (const order of relevantOrders) {
+        const key = getBucketKey(new Date(order.order_date), granularity);
+        if (!buckets.has(key)) buckets.set(key, { revenue: 0, count: 0 });
+        const bucket = buckets.get(key);
+        bucket.revenue += Number(order.total_amount);
+        bucket.count += 1;
+    }
+
+    const rangeStart = cutoff || new Date(Math.min(...relevantOrders.map(order => new Date(order.order_date))));
+
+    const labels = [];
+    const revenue = [];
+    const counts = [];
+    const seenKeys = new Set();
+
+    let cursor = new Date(rangeStart);
+    while (cursor <= now) {
+        const key = getBucketKey(cursor, granularity);
+        if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            labels.push(formatBucketLabel(key, granularity));
+            const bucket = buckets.get(key);
+            if (bucket) {
+                revenue.push(Number(bucket.revenue.toFixed(2)));
+                counts.push(bucket.count);
+            } else {
+                revenue.push(0);
+                counts.push(0);
+            }
+        }
+        cursor = stepBucket(cursor, granularity);
+    }
+
+    return { labels, revenue, counts };
+}
+
+function renderRevenueChart(orders, granularity) {
+    const { labels, revenue, counts } = buildChartData(orders, granularity);
+
+    if (revenueChart) revenueChart.destroy();
+    if (ordersChart) ordersChart.destroy();
+    chartActiveIndex = null;
+
+    let sharedAnimation = { duration: 300 };
+    if (prefersReducedMotion) {
+        sharedAnimation = false;
+    }
+    const sharedInteraction = { mode: "index", intersect: false };
+    const sharedTransitions = { active: { animation: { duration: 0 } } };
+    const onHoverSync = (event, elements) => {
+        if (elements.length > 0) {
+            setChartActiveIndex(elements[0].index);
+        }
+    };
+
+    revenueChart = new Chart(document.getElementById("revenue-chart"), {
+        type: "bar",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: revenue,
+                backgroundColor: "#30465e",
+                hoverBackgroundColor: "#5b7490",
+                borderRadius: 4,
+                borderSkipped: false,
+                maxBarThickness: 28
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: sharedAnimation,
+            interaction: sharedInteraction,
+            transitions: sharedTransitions,
+            onHover: onHoverSync,
+            layout: { padding: { top: 6 } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    ...sharedTooltipOptions(),
+                    callbacks: {
+                        title: (items) => items[0].label,
+                        label: (item) => `Revenue: $${Number(item.raw).toLocaleString("en", options)}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: false,
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    border: { display: false },
+                    grid: { color: CHART_GRID_COLOR, drawTicks: false },
+                    ticks: {
+                        padding: 8,
+                        callback: (value) => {
+                            if (value >= 1000) {
+                                return `$${value / 1000}K`;
+                            }
+                            return `$${value}`;
+                        }
+                    },
+                    afterFit: fixedYAxisWidth
+                }
+            }
+        },
+        plugins: [sharedCrosshairPlugin]
+    });
+
+    ordersChart = new Chart(document.getElementById("orders-chart"), {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: counts,
+                borderColor: "#008000",
+                backgroundColor: "rgba(0, 128, 0, 0.08)",
+                fill: true,
+                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "#008000",
+                pointHoverBorderColor: "#ffffff",
+                pointHoverBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: sharedAnimation,
+            interaction: sharedInteraction,
+            transitions: sharedTransitions,
+            onHover: onHoverSync,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    ...sharedTooltipOptions(),
+                    callbacks: {
+                        title: (items) => items[0].label,
+                        label: (item) => {
+                            if (item.raw === 1) {
+                                return `${item.raw} order`;
+                            }
+                            return `${item.raw} orders`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    offset: true,
+                    border: { display: false },
+                    grid: { color: CHART_GRID_COLOR, drawTicks: false },
+                    ticks: { maxRotation: 0, autoSkip: true, padding: 6 }
+                },
+                y: {
+                    beginAtZero: true,
+                    border: { display: false },
+                    grid: { color: CHART_GRID_COLOR, drawTicks: false },
+                    ticks: { padding: 8, precision: 0, maxTicksLimit: 3 },
+                    afterFit: fixedYAxisWidth
+                }
+            }
+        },
+        plugins: [sharedCrosshairPlugin]
+    });
 }
 
 function loadOrders() {
@@ -498,13 +820,19 @@ function showEdit(data, section, row) {
     if (section === "orders") {
         document.getElementById("edit-modal").style.display = "flex";
         document.getElementById("edit-header").textContent = "Edit Order";
-        document.getElementById("edit-inputs").innerHTML = 
-            `<input type="date" id="edit-arrival-date">
-            <select name="statuses" id="statuses">
-                <option value="Pending">Pending</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
-            </select>`;
+        document.getElementById("edit-inputs").innerHTML =
+            `<div class="form-group">
+                <h4>Arrival Date</h4>
+                <input type="date" id="edit-arrival-date">
+            </div>
+            <div class="form-group">
+                <h4>Status</h4>
+                <select name="statuses" id="statuses">
+                    <option value="Pending">Pending</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>`;
 
         const inputArrivalDate = document.getElementById("edit-arrival-date");
         const inputStatus = document.getElementById("statuses");
@@ -1104,6 +1432,17 @@ document.querySelectorAll(".order-tab").forEach(tab => {
         applyOrderFilter();
     });
 });
+
+document.querySelectorAll(".chart-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+        currentChartGranularity = tab.dataset.granularity;
+        document.querySelectorAll(".chart-tab").forEach(t => t.classList.toggle("active-tab", t === tab));
+        renderRevenueChart(cachedOverviewOrders, currentChartGranularity);
+    });
+});
+
+document.getElementById("revenue-chart").addEventListener("mouseleave", clearChartActiveIndex);
+document.getElementById("orders-chart").addEventListener("mouseleave", clearChartActiveIndex);
 
 loadOverview();
 

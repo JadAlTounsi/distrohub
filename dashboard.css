@@ -180,7 +180,7 @@ main {
     gap: 20px;
 }
 
-#recent-orders, #low-stock, #products, #orders-table, #clients-table, #items {
+#recent-orders, #low-stock, #products, #orders-table, #clients-table, #items, #revenue-chart-section {
     background-color: white;
     border-radius: 10px;
     overflow-x: auto;
@@ -189,6 +189,48 @@ main {
     box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
     min-width: min(350px, 100%);
     flex: 1;
+}
+
+#revenue-chart-section {
+    margin-bottom: 20px;
+    padding: 10px 0 15px 0;
+}
+
+.chart-panel + .chart-panel {
+    margin-top: 2px;
+}
+
+.chart-eyebrow {
+    margin: 0 0 4px 15px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5b7490;
+}
+
+.chart-canvas-wrap {
+    position: relative;
+    padding: 0 15px;
+}
+
+.chart-canvas-wrap--primary {
+    height: 210px;
+}
+
+.chart-canvas-wrap--secondary {
+    height: 110px;
+    padding-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .chart-canvas-wrap--primary {
+        height: 170px;
+    }
+
+    .chart-canvas-wrap--secondary {
+        height: 90px;
+    }
 }
 
 #recent-orders {
@@ -256,6 +298,35 @@ td {
 }
 
 .order-tab.active-tab {
+    color: #30465e;
+    border-bottom-color: #30465e;
+    font-weight: 600;
+}
+
+.chart-tabs {
+    display: flex;
+    gap: 5px;
+    margin: 0 15px 10px 15px;
+    border-bottom: 2px solid #adadaf;
+}
+
+.chart-tab {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #5b7490;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.chart-tab:hover {
+    color: #30465e;
+}
+
+.chart-tab.active-tab {
     color: #30465e;
     border-bottom-color: #30465e;
     font-weight: 600;
