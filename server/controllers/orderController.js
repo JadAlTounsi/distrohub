@@ -1,37 +1,37 @@
 import db from "../config/db.js";
 
-async function reverseOrderCommitment(conn, orderId, clientId) {
-    const [items] = await conn.query("SELECT * FROM order_items WHERE order_id = ?", [orderId]);
+async function reverseOrderCommitment(conn, orderId, clientId, sessionId) {
+    const [items] = await conn.query("SELECT * FROM order_items WHERE order_id = ? AND session_id = ?", [orderId, sessionId]);
 
     for (const item of items) {
         await conn.query(
-            "UPDATE inventory SET quantity = quantity + ? WHERE product_id = ?",
-            [item.order_quantity, item.product_id]
+            "UPDATE inventory SET quantity = quantity + ? WHERE product_id = ? AND session_id = ?",
+            [item.order_quantity, item.product_id, sessionId]
         );
     }
 
     const [totalRows] = await conn.query(
-        "SELECT COALESCE(SUM(order_quantity * order_price), 0) AS total FROM order_items WHERE order_id = ?",
-        [orderId]
+        "SELECT COALESCE(SUM(order_quantity * order_price), 0) AS total FROM order_items WHERE order_id = ? AND session_id = ?",
+        [orderId, sessionId]
     );
 
-    await conn.query("UPDATE clients SET balance = balance - ? WHERE client_id = ?", [totalRows[0].total, clientId]);
+    await conn.query("UPDATE clients SET balance = balance - ? WHERE client_id = ? AND session_id = ?", [totalRows[0].total, clientId, sessionId]);
 }
 
 export const getOrders = async (req, res) => {
     const limit = parseInt(req.query.limit);
     if (!isNaN(limit) && limit > 0) {
-        const [orders] = await db.query("SELECT orders.order_id, clients.client_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE orders.is_active = TRUE GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC LIMIT ?", [limit]);
+        const [orders] = await db.query("SELECT orders.order_id, clients.client_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE orders.is_active = TRUE AND orders.session_id = ? GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC LIMIT ?", [req.sessionId, limit]);
         return res.status(200).json(orders);
     }
 
-    const [orders] = await db.query("SELECT orders.order_id, clients.client_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE orders.is_active = TRUE GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC");
+    const [orders] = await db.query("SELECT orders.order_id, clients.client_id, clients.client_name, orders.order_date, orders.arrival_date, SUM(order_items.order_quantity) as total_quantity, SUM(order_items.order_quantity * order_items.order_price) as total_amount, orders.status FROM orders JOIN clients ON orders.client_id = clients.client_id JOIN order_items ON orders.order_id = order_items.order_id WHERE orders.is_active = TRUE AND orders.session_id = ? GROUP BY orders.order_id, clients.client_name, orders.order_date, orders.arrival_date ORDER BY orders.order_date DESC", [req.sessionId]);
     res.status(200).json(orders);
 }
 
 export const getOrder = async (req, res, next) => {
     const id = parseInt(req.params.id);
-    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ?",[id]);
+    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ? AND session_id = ?",[id, req.sessionId]);
 
     if (order.length === 0) {
         const error = new Error(`Order ${id} could not be found`);
@@ -66,7 +66,7 @@ export const createOrder = async (req, res, next) => {
     const orderDateFormatted = orderDate.toISOString().split("T")[0];
     const arrivalDateFormatted = arrivalDate.toISOString().split("T")[0];
 
-    const [client] = await db.query("SELECT * FROM clients WHERE client_id = ?",[client_id]);
+    const [client] = await db.query("SELECT * FROM clients WHERE client_id = ? AND session_id = ?",[client_id, req.sessionId]);
 
     if (client.length === 0) {
         const error = new Error(`Client ${client_id} could not be found`);
@@ -86,8 +86,8 @@ export const createOrder = async (req, res, next) => {
         await conn.beginTransaction();
 
         const [result] = await conn.query(
-            "INSERT INTO orders (client_id, order_date, arrival_date) VALUES (?, ?, ?)",
-            [newOrder.client_id, newOrder.order_date, newOrder.arrival_date]
+            "INSERT INTO orders (session_id, client_id, order_date, arrival_date) VALUES (?, ?, ?, ?)",
+            [req.sessionId, newOrder.client_id, newOrder.order_date, newOrder.arrival_date]
         );
         newOrder.order_id = result.insertId;
 
@@ -101,8 +101,8 @@ export const createOrder = async (req, res, next) => {
             }
 
             const [productRows] = await conn.query(
-                "SELECT name, quantity FROM inventory WHERE product_id = ? FOR UPDATE",
-                [item.product_id]
+                "SELECT name, quantity FROM inventory WHERE product_id = ? AND session_id = ? FOR UPDATE",
+                [item.product_id, req.sessionId]
             );
 
             if (productRows.length === 0) {
@@ -120,17 +120,17 @@ export const createOrder = async (req, res, next) => {
             }
 
             await conn.query(
-                "INSERT INTO order_items (order_id, product_id, order_quantity, order_price) VALUES (?, ?, ?, ?)",
-                [newOrder.order_id, item.product_id, quantity, item.unit_price]
+                "INSERT INTO order_items (session_id, order_id, product_id, order_quantity, order_price) VALUES (?, ?, ?, ?, ?)",
+                [req.sessionId, newOrder.order_id, item.product_id, quantity, item.unit_price]
             );
             await conn.query(
-                "UPDATE inventory SET quantity = quantity - ? WHERE product_id = ?",
-                [quantity, item.product_id]
+                "UPDATE inventory SET quantity = quantity - ? WHERE product_id = ? AND session_id = ?",
+                [quantity, item.product_id, req.sessionId]
             );
             orderTotal += quantity * item.unit_price;
         }
 
-        await conn.query("UPDATE clients SET balance = balance + ? WHERE client_id = ?", [orderTotal, client_id]);
+        await conn.query("UPDATE clients SET balance = balance + ? WHERE client_id = ? AND session_id = ?", [orderTotal, client_id, req.sessionId]);
 
         await conn.commit();
     } catch (error) {
@@ -140,7 +140,7 @@ export const createOrder = async (req, res, next) => {
         conn.release();
     }
 
-    const [updatedOrders] = await db.query("SELECT * FROM orders");
+    const [updatedOrders] = await db.query("SELECT * FROM orders WHERE session_id = ?", [req.sessionId]);
     res.status(201).json(updatedOrders);
 }
 
@@ -151,7 +151,7 @@ export const updateOrder = async (req, res, next) => {
     const arrivalDate = req.body.arrival_date;
     const status = req.body.status;
 
-    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ?", [id]);
+    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ? AND session_id = ?", [id, req.sessionId]);
 
     if (order.length === 0) {
         const error = new Error(`Order ${id} could not be found`);
@@ -181,11 +181,11 @@ export const updateOrder = async (req, res, next) => {
         await conn.beginTransaction();
 
         if (status === "Cancelled" && order[0].status !== "Cancelled") {
-            await reverseOrderCommitment(conn, id, order[0].client_id);
+            await reverseOrderCommitment(conn, id, order[0].client_id, req.sessionId);
         }
 
-        await conn.query("UPDATE orders SET arrival_date = ?, status = ? WHERE order_id = ?",
-            [arrivalDate, status, id]
+        await conn.query("UPDATE orders SET arrival_date = ?, status = ? WHERE order_id = ? AND session_id = ?",
+            [arrivalDate, status, id, req.sessionId]
         );
 
         await conn.commit();
@@ -196,13 +196,13 @@ export const updateOrder = async (req, res, next) => {
         conn.release();
     }
 
-    const [orders] = await db.query("SELECT * FROM orders");
+    const [orders] = await db.query("SELECT * FROM orders WHERE session_id = ?", [req.sessionId]);
     res.status(200).json(orders);
 }
 
 export const deleteOrder = async (req, res, next) => {
     const id = parseInt(req.params.id);
-    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ?",[id]);
+    const [order] = await db.query("SELECT * FROM orders WHERE order_id = ? AND session_id = ?",[id, req.sessionId]);
 
     if (order.length === 0) {
         const error = new Error(`Order ${id} could not be found`);
@@ -216,10 +216,10 @@ export const deleteOrder = async (req, res, next) => {
         await conn.beginTransaction();
 
         if (order[0].status === "Pending") {
-            await reverseOrderCommitment(conn, id, order[0].client_id);
+            await reverseOrderCommitment(conn, id, order[0].client_id, req.sessionId);
         }
 
-        await conn.query("UPDATE orders SET is_active = FALSE WHERE order_id = ?", [id]);
+        await conn.query("UPDATE orders SET is_active = FALSE WHERE order_id = ? AND session_id = ?", [id, req.sessionId]);
 
         await conn.commit();
     } catch (error) {
@@ -229,6 +229,6 @@ export const deleteOrder = async (req, res, next) => {
         conn.release();
     }
 
-    const [orders] = await db.query("SELECT * FROM orders");
+    const [orders] = await db.query("SELECT * FROM orders WHERE session_id = ?", [req.sessionId]);
     res.status(200).json(orders);
 }

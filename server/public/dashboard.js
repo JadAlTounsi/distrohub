@@ -1,3 +1,14 @@
+let API_BASE;
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    API_BASE = "http://localhost:8000";
+} else {
+    API_BASE = "";
+}
+
+function apiFetch(path, options = {}) {
+    return fetch(`${API_BASE}${path}`, { ...options, credentials: "include" });
+}
+
 const overviewBtn = document.getElementById("overview");
 const inventoryBtn = document.getElementById("inventory");
 const ordersBtn = document.getElementById("orders");
@@ -184,7 +195,7 @@ clientsBtn.addEventListener("click", () => {
 
 
 function loadOverview() {
-    fetch('http://localhost:8000/api/inventory')
+    apiFetch(`/api/inventory`)
         .then(response => response.json())
         .then(data => {
             let sum = 0;
@@ -222,7 +233,7 @@ function loadOverview() {
 
         });
 
-    fetch("http://localhost:8000/api/orders")
+    apiFetch(`/api/orders`)
         .then(response => response.json())
         .then(data => {
             let active = 0;
@@ -266,7 +277,7 @@ function loadOverview() {
             renderRevenueChart(cachedOverviewOrders, currentChartGranularity);
         });
 
-    fetch("http://localhost:8000/api/clients")
+    apiFetch(`/api/clients`)
         .then(response => response.json())
         .then(data => {
             let clients = 0;
@@ -525,7 +536,7 @@ function renderRevenueChart(orders, granularity) {
 }
 
 function loadOrders() {
-    fetch(`http://localhost:8000/api/orders`)
+    apiFetch(`/api/orders`)
         .then(response => response.json())
         .then(data => {
             const ordersBody = document.getElementById("orders-body");
@@ -589,7 +600,7 @@ function loadOrders() {
 }
 
 function loadInventory() {
-    fetch('http://localhost:8000/api/inventory')
+    apiFetch(`/api/inventory`)
         .then(response => response.json())
         .then(data => {
             const productsBody = document.getElementById("products-body");
@@ -661,7 +672,7 @@ function loadInventory() {
 }
 
 function loadClients() {
-    fetch(`http://localhost:8000/api/clients`)
+    apiFetch(`/api/clients`)
         .then(response => response.json())
         .then(data => {
             const clientsBody = document.getElementById("clients-body");
@@ -713,7 +724,7 @@ function loadClients() {
 
 function deleteRow(endpoint, id, row, onSuccess) {
 
-    fetch(`http://localhost:8000/api/${endpoint}/${id}`, {
+    apiFetch(`/api/${endpoint}/${id}`, {
         method: "DELETE"
     })
     .then(response => {
@@ -800,7 +811,7 @@ function showEdit(data, section, row) {
         maxTwoDecimalPlaces(inputProductPrice);
 
         document.getElementById("edit-save").onclick = () => {
-            fetch(`http://localhost:8000/api/inventory/${data.product_id}`, {
+            apiFetch(`/api/inventory/${data.product_id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -856,7 +867,7 @@ function showEdit(data, section, row) {
         inputStatus.value = data.status;
 
         document.getElementById("edit-save").onclick = () => {
-            fetch(`http://localhost:8000/api/orders/${data.order_id}`, {
+            apiFetch(`/api/orders/${data.order_id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -916,7 +927,7 @@ function showEdit(data, section, row) {
         inputPhone.value = data.phone;
 
         document.getElementById("edit-save").onclick = () => {
-            fetch(`http://localhost:8000/api/clients/${data.client_id}`, {
+            apiFetch(`/api/clients/${data.client_id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -983,7 +994,7 @@ function showAdd(section) {
             const newProductUnit = document.getElementById("add-unit").value;
             const newProductPrice = document.getElementById("add-price").value;
 
-            fetch(`http://localhost:8000/api/inventory`, {
+            apiFetch(`/api/inventory`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -1083,7 +1094,7 @@ function showAdd(section) {
 
         orderTotal.textContent = Number(orderTotalAmount).toLocaleString("en", options);
 
-        fetch(`http://localhost:8000/api/clients`)
+        apiFetch(`/api/clients`)
             .then(response => response.json())
             .then(data => {
                 for (const client of data) {
@@ -1094,7 +1105,7 @@ function showAdd(section) {
                 }
             });
 
-        fetch(`http://localhost:8000/api/inventory`)
+        apiFetch(`/api/inventory`)
             .then(response => response.json())
             .then(data => {
 
@@ -1143,7 +1154,7 @@ function showAdd(section) {
         let itemsAdded = [];
         document.getElementById("add-item-btn").onclick = () => {
             let skipReset = false;
-            fetch(`http://localhost:8000/api/inventory`)
+            apiFetch(`/api/inventory`)
                 .then(response => response.json())
                 .then(data => {
                     if (!selectItem.value) {
@@ -1228,7 +1239,7 @@ function showAdd(section) {
         
         document.getElementById("add-save").onclick = () => {
 
-            fetch(`http://localhost:8000/api/orders`, {
+            apiFetch(`/api/orders`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -1285,7 +1296,7 @@ function showAdd(section) {
             const newClientName = document.getElementById("add-client-name").value;
             const newClientPhone = document.getElementById("add-phone").value;
 
-            fetch(`http://localhost:8000/api/clients`, {
+            apiFetch(`/api/clients`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -1507,7 +1518,6 @@ function getStatusGroup(status) {
 }
 
 function setOrderStatus(span, status) {
-    status = span.textContent;
     if (status === "Delivered") {
         span.className = "status-delivered";
     }
@@ -1591,18 +1601,20 @@ document.querySelectorAll(".chart-tab").forEach(tab => {
 document.getElementById("revenue-chart").addEventListener("mouseleave", clearChartActiveIndex);
 document.getElementById("orders-chart").addEventListener("mouseleave", clearChartActiveIndex);
 
-loadOverview();
+apiFetch("/api/session").finally(() => {
+    loadOverview();
 
-const hash = location.hash.replace("#", "");
-if (hash === "overview") {
-    overviewBtn.click();
-}
-if (hash === "inventory") {
-    inventoryBtn.click();
-}
-if (hash === "orders") {
-    ordersBtn.click();
-}
-if (hash === "clients") {
-    clientsBtn.click();
-}
+    const hash = location.hash.replace("#", "");
+    if (hash === "overview") {
+        overviewBtn.click();
+    }
+    if (hash === "inventory") {
+        inventoryBtn.click();
+    }
+    if (hash === "orders") {
+        ordersBtn.click();
+    }
+    if (hash === "clients") {
+        clientsBtn.click();
+    }
+});
