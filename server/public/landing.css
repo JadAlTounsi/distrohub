@@ -194,26 +194,6 @@ nav ul li a:hover {
     line-height: 1.6;
 }
 
-#about-project {
-    background-color: white;
-    border-top: 1px solid #b1b3b4;
-    border-bottom: 1px solid #b1b3b4;
-    padding: 60px 20px;
-    text-align: center;
-}
-
-#about-project h2 {
-    margin: 0 0 15px;
-}
-
-#about-project p {
-    max-width: 600px;
-    margin: 0 auto;
-    color: #5b7490;
-    font-size: 16px;
-    line-height: 1.6;
-}
-
 #cta {
     text-align: center;
     padding: 70px 20px;

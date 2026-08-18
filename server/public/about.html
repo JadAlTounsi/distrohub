@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About</title>
+    <link rel="stylesheet" href="landing.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=code,receipt_long,storefront" />
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="brand">
+                <img src="img/Logo-Text.png" alt="DistroHub">
+            </a>
+            <ul>
+                <li><a href="features.html">Features</a></li>
+                <li><a href="about.html">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero">
+            <h1>Built out of a real distribution business's actual problems</h1>
+            <p>DistroHub started as an answer to a specific mess: inventory in one spreadsheet, orders scribbled on paper, and client balances tracked from memory. It's software built to fix that, not a product built to sell.</p>
+        </section>
+
+        <section id="feature-detail">
+            <div class="detail-row">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <div>
+                    <h2>Why it exists</h2>
+                    <p>The business this was built for used to run on a spreadsheet for stock, a different one for orders, and a paper ledger for who owed what. Numbers drifted out of sync constantly, and nobody trusted them by the end of a week. DistroHub exists to put all three in one place that actually matches reality.</p>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <span class="material-symbols-outlined">storefront</span>
+                <div>
+                    <h2>Who it's built for</h2>
+                    <p>This isn't software built to sell to anyone who signs up. It's shaped around one wholesale distribution business, its products, and how it actually places orders and manages clients day to day.</p>
+                </div>
+            </div>
+
+            <div class="detail-row">
+                <span class="material-symbols-outlined">code</span>
+                <div>
+                    <h2>Kept simple, on purpose</h2>
+                    <p>No framework, no ORM, no build step. Plain JavaScript and raw SQL, chosen so every part of how the app works is understood, not just wired together.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="cta">
+            <a href="dashboard.html" class="btn-primary">View Dashboard</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Jad Al Tounsi. All rights reserved.</p>
+    </footer>
+
+    <script src="scroll-header.js"></script>
+</body>
+</html>
