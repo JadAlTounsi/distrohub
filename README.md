@@ -1,10 +1,19 @@
 # DistroHub
-A wholesale distribution management platform for tracking inventory, deliveries, and client balances. This replaces unorganized spreadsheets and guesswork with a simple dashboard.
+A wholesale distribution management platform for tracking inventory, orders, and client balances. Built for a real distribution business, to replace spreadsheets and paper ledgers with a single dashboard.
 
 ## Tech Stack
-- HTML
-- CSS
+- Node.js/Express
+- MySQL
+- HTML/CSS
 - JavaScript
 
-## Roadmap
-Starting simple, and working towards a full client facing order portal backed by Node.js, Express, and MySQL stack.
+## Status
+Basic inventory, orders, and client tracking are in place for the business side. Payment tracking, so client balances can actually go down once they pay, is yet to be implemented.
+
+## Getting Started
+```
+cd server
+npm install
+npm run dev
+```
+Requires a .env file with your MySQL connection details (see server/config/db.js).
