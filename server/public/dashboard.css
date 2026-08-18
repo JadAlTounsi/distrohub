@@ -481,6 +481,15 @@ td {
     cursor: pointer;
 }
 
+#orders-table th:last-child,
+#orders-body td:last-child {
+    text-align: center;
+}
+
+#orders-body td:last-child .edit-icon:only-child {
+    margin-right: 0;
+}
+
 #error {
     display: none;
     position: fixed;

@@ -210,24 +210,13 @@ export const deleteOrder = async (req, res, next) => {
         return next(error);
     }
 
-    const conn = await db.getConnection();
-
-    try {
-        await conn.beginTransaction();
-
-        if (order[0].status === "Pending") {
-            await reverseOrderCommitment(conn, id, order[0].client_id, req.sessionId);
-        }
-
-        await conn.query("UPDATE orders SET is_active = FALSE WHERE order_id = ? AND session_id = ?", [id, req.sessionId]);
-
-        await conn.commit();
-    } catch (error) {
-        await conn.rollback();
+    if (order[0].status === "Pending") {
+        const error = new Error("Pending orders cannot be deleted - cancel or deliver it first");
+        error.status = 409;
         return next(error);
-    } finally {
-        conn.release();
     }
+
+    await db.query("UPDATE orders SET is_active = FALSE WHERE order_id = ? AND session_id = ?", [id, req.sessionId]);
 
     const [orders] = await db.query("SELECT * FROM orders WHERE session_id = ?", [req.sessionId]);
     res.status(200).json(orders);

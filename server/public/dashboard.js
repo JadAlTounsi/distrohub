@@ -568,22 +568,26 @@ function loadOrders() {
                 tdOrderStatus.appendChild(spanOrderStatus);
 
                 spanActionsEdit.className = "material-symbols-outlined edit-icon";
-                spanActionsDelete.className = "material-symbols-outlined delete-icon";
-
                 spanActionsEdit.textContent = "edit_square";
-                spanActionsDelete.textContent = "delete";
-
-                spanActionsDelete.addEventListener("click", () => {
-                    showConfirm(`Delete Order #${order.order_id}`, `Are you sure you want to delete this order for ${order.client_name}?`, () => {
-                        deleteRow("orders", order.order_id, tr, ordersFilter.apply);
-                    });
-                });
 
                 spanActionsEdit.addEventListener("click", () => {
                     showEdit(order, "orders", tr);
                 });
 
-                tdActions.append(spanActionsEdit, spanActionsDelete);
+                tdActions.appendChild(spanActionsEdit);
+
+                if (order.status !== "Pending") {
+                    spanActionsDelete.className = "material-symbols-outlined delete-icon";
+                    spanActionsDelete.textContent = "delete";
+
+                    spanActionsDelete.addEventListener("click", () => {
+                        showConfirm(`Delete Order #${order.order_id}`, `Are you sure you want to delete this order for ${order.client_name}?`, () => {
+                            deleteRow("orders", order.order_id, tr, ordersFilter.apply);
+                        });
+                    });
+
+                    tdActions.appendChild(spanActionsDelete);
+                }
 
                 tr.append(tdOrderId, tdClient, tdAmount, tdOrderDate, tdArrivalDate, tdOrderStatus, tdActions);
                 ordersBody.appendChild(tr);
