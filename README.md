@@ -6,14 +6,22 @@ A wholesale distribution management platform for tracking inventory, orders, and
 - MySQL
 - HTML/CSS
 - JavaScript
+- Docker
 
 ## Status
 Basic inventory, orders, and client tracking are in place for the business side. Payment tracking, so client balances can actually go down once they pay, is yet to be implemented.
 
 ## Getting Started
+To run locally, you will need to have [Docker](https://www.docker.com/products/docker-desktop/) installed
+
+To run:
 ```
 cd server
-npm install
-npm run dev
+docker compose up
 ```
-Requires a .env file with your MySQL connection details (see server/config/db.js).
+Once its running, open https://localhost:8000 and it should take you to the landing page
+
+To stop:
+```
+docker compose down
+```
