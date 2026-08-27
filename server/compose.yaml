@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: .
+    ports: 
+      - '8000:8000'
+    environment:
+      PORT: 8000
+      DB_HOST: db
+      DB_USER: root
+      DB_PASSWORD: pass
+      DB_NAME: distrohub
+    restart: unless-stopped
+
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: distrohub
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
