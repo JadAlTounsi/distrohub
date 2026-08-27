@@ -8,6 +8,9 @@
     "dev": "nodemon --env-file=.env server.js",
     "seed:demo": "node --env-file=.env seed-demo.js"
   },
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JadAlTounsi/distrohub.git"
