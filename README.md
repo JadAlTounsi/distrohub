@@ -6,6 +6,7 @@ A wholesale distribution management platform for tracking inventory, orders, and
 - MySQL
 - HTML/CSS
 - JavaScript
+- Azure
 - Docker
 
 ## Status
