@@ -1,5 +1,5 @@
 # DistroHub
-A wholesale distribution management platform for tracking inventory, orders, and client balances. Built for a real distribution business, to replace spreadsheets and paper ledgers with a single dashboard.
+A wholesale distribution management platform for tracking inventory, orders, and client balances. Built for a distribution business to replace spreadsheets and paper ledgers with a single dashboard.
 
 ## Tech Stack
 - Node.js/Express
